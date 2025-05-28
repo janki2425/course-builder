@@ -9,6 +9,7 @@ type ModulesState = {
   modules: Module[];
   addModule: (title: string) => void;
   removeModule: (id: string) => void;
+  setModules: (newModules: Module[]) => void;
 };
 
 export const useModulesStore = create<ModulesState>((set) => ({
@@ -24,4 +25,5 @@ export const useModulesStore = create<ModulesState>((set) => ({
     set((state) => ({
       modules: state.modules.filter((mod) => mod.id !== id),
     })),
+  setModules: (newModules: Module[]) => set({ modules: newModules }),
 }));

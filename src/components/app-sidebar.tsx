@@ -23,6 +23,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
+  const modules = useModulesStore((state) => state.modules)
   
   // Use your media query hook
   const isMobile = useMediaQuery("(max-width: 767px)")
@@ -54,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <button 
               type="button"
               onClick={handleBackToAdmin}
-              className="flex gap-2 p-2 items-center hover:bg-[#f2f2f2] rounded-lg mt-2 ml-2 w-fit transition-all duration-200 hover:translate-x-[-2px]"
+              className="flex gap-2 p-2 cursor-pointer items-center hover:bg-[#f2f2f2] rounded-lg mt-2 ml-2 w-fit transition-all duration-200 hover:translate-x-[-2px]"
             >
               <Image 
                 src="/sidebar/left-arrow.svg" 
@@ -77,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
                   <div className="flex flex-col">
                     <span className="text-[#6B7280] text-[12px] font-[400]">Modules</span>
-                    <p className="text-[#111928] text-[12px] font-[700]">0</p>
+                    <p className="text-[#111928] text-[12px] font-[700]">{modules.length}</p>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[#6B7280] text-[12px] font-[400]">Topics</span>
@@ -95,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <button
                   type="button"
                   onClick={() => addModule("New Module")}
-                  className='hidden md:flex w-full bg-[#9b87f5] text-white text-[14px] font-[500] justify-center items-center gap-2 rounded-lg py-2 px-4 max-w-[200px] transition-all duration-200 hover:bg-[#8c7adc]'
+                  className='hidden md:flex cursor-pointer w-full bg-[#9b87f5] text-white text-[14px] font-[500] justify-center items-center gap-2 rounded-lg py-2 px-4 max-w-[200px] transition-all duration-200 hover:bg-[#8c7adc]'
                 >
                   <Image src="/sidebar/add.svg" alt="add" width={20} height={20} className="invert w-[20px] h-[20px] md:w-[16px] md:h-[16px] lg:w-[20px] lg:h-[20px] transition-transform duration-200 group-hover:translate-x-[-2px]"/>
                   <span className="text-[12px] lg:text-[14px] font-[500]">Add Module</span>
@@ -105,14 +106,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <button
                   type="button"
                   onClick={() => addModule("New Module")}
-                  className='w-full bg-[#9b87f5] text-white text-[14px] font-[500] flex justify-center items-center gap-2 rounded-lg py-2 max-w-[40px]'
+                  className='w-full bg-[#9b87f5] cursor-pointer text-white text-[14px] font-[500] flex justify-center items-center gap-2 rounded-lg py-2 max-w-[40px]'
                 >
                   <Image src="/sidebar/add.svg" alt="add" width={16} height={16} className="invert"/>
                 </button>
                 )}
               </div>
             </div>
-            <Modules isCollapsed={isCollapsed} />
+            <Modules isCollapsed={isCollapsed}/>
           </div>
         </div>
         <div className="relative h-full w-full">

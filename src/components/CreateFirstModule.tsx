@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { useModulesStore } from '@/app/store/modulesStore'
 
-const CreateModule = () => {
+const CreateFirstModule = () => {
     const addModule = useModulesStore((state) => state.addModule)
   return (
     <div className='w-full flex justify-center items-center min-h-[calc(100vh-5rem)]'>
@@ -16,7 +16,7 @@ const CreateModule = () => {
         <p className='text-[12px] lg:text-[16px] text-[#4B5563] mb-[16px] lg:mb-[32px] transition-all duration-300'>Start building your course by creating a module in the sidebar. Add topics to each module to create a comprehensive learning experience.</p>
         <button 
         onClick={() => addModule("New Module")}
-        className='w-full max-w-[160px] md:max-w-[185px] mx-auto bg-[#9B87F5] md:py-[8px] md:px-[16px] py-[6px] px-[12px] rounded-md flex items-center justify-center gap-[8px] transition-all duration-300 hover:bg-[#8c7adc]'>
+        className='w-full max-w-[160px] md:max-w-[185px] cursor-pointer mx-auto bg-[#9B87F5] md:py-[8px] md:px-[16px] py-[6px] px-[12px] rounded-md flex items-center justify-center gap-[8px] transition-all duration-300 hover:bg-[#8c7adc]'>
             <span className='text-[12px] md:text-[14px] text-white transition-all duration-300'>Create First Module</span>
             <Image src="/course/right-arrow.svg" alt="right-arrow" width={16} height={16} className='invert w-[12px] h-[12px] md:w-[16px] md:h-[16px] transition-all duration-300'/>
         </button>
@@ -25,4 +25,4 @@ const CreateModule = () => {
   )
 }
 
-export default CreateModule
+export default CreateFirstModule

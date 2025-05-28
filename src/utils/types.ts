@@ -8,11 +8,13 @@ export type CourseDetails = {
 
 export type NavbarState = {
     title: string
+    moduleTitle: string
     courses: { [courseId: string]: CourseDetails }
     isEditing: boolean
     publish: boolean
     save: string[]
     setTitle: (title: string) => void
+    setModuleTitle: (moduleTitle: string) => void
     setIsEditing: (editing: boolean) => void
     togglePublish: () => void
     setSave: (save: string[]) => void
