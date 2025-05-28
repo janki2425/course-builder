@@ -14,7 +14,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -205,7 +204,7 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn("size-7 min-w-[48px] min-h-[48px] cursor-pointer hover:bg-[#f2f2f2] p-4 rounded-lg transition-all duration-200", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { NavbarState, CourseDetails } from '@/utils/types';
+import { NavbarState } from '@/utils/types';
 
 export const useNavbarStore = create<NavbarState>((set ,get) => ({
     title: 'Untitled courses',
