@@ -64,7 +64,7 @@ const Navbar = () => {
       }
       
   return (
-    <div className='w-full max-w-[1440px] sticky top-0 z-50 h-[72px] bg-white border-b border-gray-200 mx-auto shadow-sm'>
+    <div className='w-full sticky top-0 z-50 h-[72px] bg-white border-b border-gray-200 mx-auto shadow-sm'>
       <div className='w-full h-full flex justify-between items-center px-4 lg:px-[24px] transition-all duration-300'>
         <div className={`flex items-center transition-all duration-300 ${isEditing ? 'w-auto p-2 rounded-lg border-[2px] border-gray-700' : 'w-fit'}`}>
             {isEditing ? (
@@ -72,7 +72,7 @@ const Navbar = () => {
                     type="text" 
                     onChange={handleTitle}
                     value={title}
-                    className='w-full max-w-[200px] text-[18px] focus:outline-none text-[#020817] font-bold transition-all duration-300'
+                    className='w-full max-w-[200px] text-[12px] md:text-[18px] focus:outline-none text-[#020817] font-bold transition-all duration-300'
                     autoFocus
                     onBlur={() => setIsEditing(false)}
                     onKeyDown={e => { if (e.key === 'Enter') setIsEditing(false); }}
@@ -97,7 +97,7 @@ const Navbar = () => {
             </div>
             <button 
             onClick={handleSave}
-            className='flex items-center justify-center gap-1 md:gap-2 py-2 md:px-4 px-2 leading-none cursor-pointer text-white rounded-md bg-[#9b87f5] hover:bg-[#8c7adc] transition-all duration-300'>
+            className='flex min-w-[70px] items-center justify-center gap-1 md:gap-2 py-2 md:px-4 px-2 leading-none cursor-pointer text-white rounded-md bg-[#9b87f5] hover:bg-[#8c7adc] transition-all duration-300'>
                 <Image src={'/navbar/file.svg'} alt='file' width={24} height={24} className='invert md:w-[24px] md:h-[24px] w-[16px] h-[16px]'/>
                 <p className='text-[12px] md:text-[14px] font-[500] leading-none'>save course</p>
             </button>

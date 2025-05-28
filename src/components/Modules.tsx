@@ -7,7 +7,7 @@ const Modules = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const removeModule = useModulesStore((state) => state.removeModule);
 
   return (
-    <div className='w-full h-full flex flex-col gap-4'>
+    <div className='w-full h-full flex flex-col gap-4 pb-[50px]'>
       {!isCollapsed && (
         <div className="flex flex-col gap-2 items-center justify-center mt-4">
           {modules.map((mod) => (

@@ -16,16 +16,23 @@ import { useEffect } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
 import { useModulesStore } from "@/app/store/modulesStore"
+import { useSidebarStore } from "@/app/store/sidebarStore"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const router = useRouter()
+  const setCollapsed = useSidebarStore((s) => s.setCollapsed)
   
   // Use your media query hook
   const isMobile = useMediaQuery("(max-width: 767px)")
 
   const addModule = useModulesStore((state) => state.addModule)
+
+  // Sync Zustand state with sidebar state
+  useEffect(() => {
+    setCollapsed(isCollapsed)
+  }, [isCollapsed, setCollapsed])
 
   // Force collapse on mobile
   useEffect(() => {
