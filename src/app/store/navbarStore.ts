@@ -6,8 +6,8 @@ import { NavbarState } from '@/utils/types'
 export const useNavbarStore = create<NavbarState>()(
   persist(
     (set, get) => ({
-      title: 'Untitled courses',
-      moduleTitle: 'New module',
+      title: 'Untitled Courses',
+      moduleTitle: 'New Module',
       courses: {},
       isEditing: false,
       publish: false,
@@ -36,8 +36,15 @@ export const useNavbarStore = create<NavbarState>()(
       },
     }),
     {
-      name: 'navbar-storage', // key in localStorage
-      partialize: (state) => ({ moduleTitle: state.moduleTitle }) // only persist necessary parts
+      name: 'navbar-storage',
+      partialize: (state) => ({
+        title: state.title,
+        moduleTitle: state.moduleTitle,
+        isEditing: state.isEditing,
+        publish: state.publish,
+        save: state.save,
+        courses: state.courses,
+      }),
     }
   )
 )
