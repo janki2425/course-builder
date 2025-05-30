@@ -51,7 +51,6 @@ type TableEditorProps = {
 };
 
 const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
-  // Simple table editor: add/remove rows/columns, edit cells
   const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
   const addCol = () => onChange(value.map((row) => [...row, 'Cell content']));
   const updateCell = (rowIdx: number, colIdx: number, val: string) => {
@@ -97,6 +96,7 @@ const Page = () => {
     const moduleId = params.id as string;
     const modules = useModulesStore((state) => state.modules);
     const updateModuleTitle = useModulesStore((state) => state.updateModuleTitle);
+    const updateModuleDuration = useModulesStore((state) => state.updateModuleDuration);
     const { isEditing, setIsEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
@@ -114,6 +114,7 @@ const Page = () => {
 
     const currentModule = modules.find(mod => mod.id === moduleId);
     const moduleTitle = currentModule?.title || 'New Module';
+    const moduleDuration = currentModule?.duration;
 
     // Set initial input value when editing starts
     useEffect(() => {
@@ -183,32 +184,52 @@ const Page = () => {
     };
 
     if (!currentModule) {
-        return <div>Module not found</div>;
+        return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
     }
+
+    const totalDuration = modules.reduce((acc, mod) => acc + (mod.duration || 0), 0);
 
     return (
         <div className='w-full h-auto mx-auto'>
             <div className='w-full max-w-[870px] p-6 mx-auto flex flex-col items-center justify-center'>
+               <div className='flex items-start gap-4 w-full'>
                 <div className={`w-full flex items-start transition-all mb-[36px] duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
-                    {isEditing ? (
+                        {isEditing ? (
+                            <input 
+                                type="text" 
+                                onChange={handleTitle}
+                                value={inputValue}
+                                className='w-full max-w-[300px] text-[12px] md:text-[18px] focus:outline-none text-[#020817] py-1 px-2 rounded-lg border-[2px] border-gray-700 font-bold transition-all duration-300'
+                                autoFocus
+                                onBlur={handleSave}
+                                onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
+                            />
+                        ) : (
+                            <h1 
+                                className='text-[14px] md:text-[20px] text-[#020817] font-[500] hover:text-[#9b87f5] cursor-pointer transition-all duration-300'
+                                onClick={() => setIsEditing(true)}
+                            >
+                                {moduleTitle}
+                            </h1>
+                        )}
+                    </div>
+                    <div className='w-fit flex items-center gap-2 p-2'>
+                        <label htmlFor="time" className='text-[14px] md:text-[14px] text-[#020817] font-[500] mb-1'>Duration</label>
                         <input 
-                            type="text" 
-                            onChange={handleTitle}
-                            value={inputValue}
-                            className='w-full max-w-[300px] text-[12px] md:text-[18px] focus:outline-none text-[#020817] py-1 px-2 rounded-lg border-[2px] border-gray-700 font-bold transition-all duration-300'
-                            autoFocus
-                            onBlur={handleSave}
-                            onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
-                        />
-                    ) : (
-                        <h1 
-                            className='text-[14px] md:text-[20px] text-[#020817] font-[500] hover:text-[#9b87f5] cursor-pointer transition-all duration-300'
-                            onClick={() => setIsEditing(true)}
-                        >
-                            {moduleTitle}
-                        </h1>
-                    )}
-                </div>
+                        type="number" 
+                        id="time"
+                        name="time"
+                        min={1}
+                        max={100}
+                        value={moduleDuration}
+                        onChange={e => {
+                            const val = e.target.value;
+                            updateModuleDuration(moduleId, val === "" ? 0 : Number(val))
+                        }}
+                        className='w-[60px] text-[14px] focus:outline-none text-[#020817] py-1 px-2 rounded-md border-[1px] bg-white border-gray-300 font-bold transition-all duration-300' />
+                        <p className='text-[14px] md:text-[14px] text-[#020817] font-[500] mb-1'>min</p>
+                    </div>
+               </div>
 
                     {/* display topic details */}
                 <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${activeTopic ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>

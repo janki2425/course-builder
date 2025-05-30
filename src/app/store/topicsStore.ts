@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type TopicType = 'text' | 'image' | 'video' | 'table' | 'information';
 
@@ -9,7 +10,9 @@ export type Topic = {
   content?: string;
   imageUrl?: string;
   videoUrl?: string;
-  tableData?: string[][]; // for table topic
+  tableData?: string[][];
+  duration?: number;
+  topics?: Topic[];
 };
 
 type TopicsState = {
@@ -19,17 +22,21 @@ type TopicsState = {
   setActiveTopicId: (id: number) => void;
   updateTopic: (moduleId: string, topicId: number, data: Partial<Topic>) => void;
   deleteTopic: (moduleId: string, topicId: number) => void;
+  removeModuleTopics: (moduleId: string) => void;
 };
 
-export const useTopicsStore = create<TopicsState>((set) => ({
-  topicsByModule: {},
-  activeTopicId: null,
-  addTopic: (moduleId, type, title) =>
+export const useTopicsStore = create<TopicsState>()(
+  persist(
+    (set) => ({
+      topicsByModule: {},
+      activeTopicId: null,
+      addTopic: (moduleId, type, title) =>
     set((state) => {
       const newTopic: Topic = {
         id: Date.now(),
         type,
         title,
+        duration: 15,
         ...(type === 'table' ? { tableData: [['Header 1', 'Header 2'], ['Cell content', 'Cell content']] } : {}),
       };
       return {
@@ -58,4 +65,22 @@ export const useTopicsStore = create<TopicsState>((set) => ({
       },
       activeTopicId: state.activeTopicId === topicId ? null : state.activeTopicId,
     })),
-}));
+  removeModuleTopics: (moduleId) =>
+    set((state) => {
+      const newTopicsByModule = { ...state.topicsByModule };
+      delete newTopicsByModule[moduleId];
+      return { topicsByModule: newTopicsByModule };
+    }),
+  }),
+  {
+    name: 'topics',
+    partialize: (state) => ({
+      topicsByModule: state.topicsByModule,
+      activeTopicId: state.activeTopicId,
+    }),
+    storage: createJSONStorage(() => localStorage),
+  }
+  )
+);
+
+

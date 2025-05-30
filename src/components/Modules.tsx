@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { useModulesStore } from "@/app/store/modulesStore"
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
+import { useTopicsStore } from '@/app/store/topicsStore';
 import {
   DndContext,
   closestCenter,
@@ -18,13 +19,16 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from 'next/navigation'
 
-const SortableItem = ({ mod, onRemove }: { mod: any, onRemove: any }) => {
+const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemove: any, getModuleTopicCount: (moduleId: string) => number }) => {
   const router = useRouter()
   const { setIsEditing } = useModuleEditStore();
   const updateModuleTitle = useModulesStore((state) => state.updateModuleTitle);
+  const topicsByModule = useTopicsStore((state) => state.topicsByModule);
   const [isEditing, setIsEditingLocal] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(mod.title);
   const [isHovered, setIsHovered] = React.useState(false);
+
+  const topicCount = getModuleTopicCount(mod.id);
 
   const handleModuleClick = (id: string) => {
     if (!isEditing) {
@@ -50,6 +54,8 @@ const SortableItem = ({ mod, onRemove }: { mod: any, onRemove: any }) => {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  
 
   return (
     <div
@@ -93,7 +99,7 @@ const SortableItem = ({ mod, onRemove }: { mod: any, onRemove: any }) => {
           </span>
 
           <div className="flex flex-col items-center justify-center gap-[1px]">
-            <p className="text-[12px] lg:text-[14px] font-[500]">0</p>
+            <p className="text-[12px] lg:text-[14px] font-[500]">{topicCount}</p>
             <span className="text-[12px] lg:text-[14px] font-[500]">Topics</span>
           </div>
 
@@ -155,11 +161,12 @@ const SortableItemCollapsed = ({ mod, onClick }: any) => {
   );
 };
 
-const Modules = ({ isCollapsed }: { isCollapsed: boolean }) => {
+const Modules = ({ isCollapsed, getModuleTopicCount }: { isCollapsed: boolean, getModuleTopicCount: (moduleId: string) => number }) => {
   const router = useRouter()
   const modules = useModulesStore((state) => state.modules);
   const setModules = useModulesStore((state) => state.setModules);
   const removeModule = useModulesStore((state) => state.removeModule);
+  const removeModuleTopics = useTopicsStore((state) => state.removeModuleTopics);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -172,6 +179,11 @@ const Modules = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
       setModules(arrayMove(modules, oldIndex, newIndex));
     }
+  };
+
+  const handleRemoveModule = (moduleId: string) => {
+    removeModule(moduleId);
+    removeModuleTopics(moduleId);
   };
 
   if (isCollapsed) {
@@ -193,15 +205,21 @@ const Modules = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   return (
     <div className="w-full h-full flex flex-col gap-4 pb-[50px]">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-2 items-center justify-center mt-4">
-            {modules.map((mod) => (
-              <SortableItem key={mod.id} mod={mod} onRemove={removeModule} />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {modules.length === 0 ? (
+        <div className="flex items-center justify-center mt-4 text-center">
+          <p className="text-[14px] text-gray-500">No modules yet. Click "Add Module" to get started.</p>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-2 items-center justify-center mt-4">
+              {modules.map((mod) => (
+                <SortableItem key={mod.id} mod={mod} onRemove={handleRemoveModule} getModuleTopicCount={getModuleTopicCount} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
     </div>
   );
 }

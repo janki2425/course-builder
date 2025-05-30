@@ -17,18 +17,24 @@ import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
 import { useModulesStore } from "@/app/store/modulesStore"
 import { useSidebarStore } from "@/app/store/sidebarStore"
-
+import { useTopicsStore } from "@/app/store/topicsStore"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
   const modules = useModulesStore((state) => state.modules)
-  
+  const topicsByModule = useTopicsStore((state) => state.topicsByModule)
+  const totalTopics = Object.values(topicsByModule).reduce((acc, curr) => acc + curr.length, 0);
+  const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0);
   // Use your media query hook
   const isMobile = useMediaQuery("(max-width: 767px)")
 
   const addModule = useModulesStore((state) => state.addModule)
+
+  const getModuleTopicCount = (moduleId: string) => {
+    return topicsByModule[moduleId]?.length || 0;
+  };
 
   // Sync Zustand state with sidebar state
   useEffect(() => {
@@ -82,11 +88,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[#6B7280] text-[12px] font-[400]">Topics</span>
-                    <p className="text-[#111928] text-[12px] font-[700]">0</p>
+                    <p className="text-[#111928] text-[12px] font-[700]">{totalTopics}</p>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[#6B7280] text-[12px] font-[400]">Est. Duration</span>
-                    <p className="text-[#111928] text-[12px] font-[700]">0 minutes</p>
+                    <p className="text-[#111928] text-[12px] font-[700]">{totalDuration} minutes</p>
                   </div>
                 </div>
                 </div>
@@ -113,7 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )}
               </div>
             </div>
-            <Modules isCollapsed={isCollapsed}/>
+            <Modules isCollapsed={isCollapsed} getModuleTopicCount={getModuleTopicCount}/>
           </div>
         </div>
         <div className="relative h-full w-full">

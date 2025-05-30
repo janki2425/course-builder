@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 type Module = {
   id: string;
   title: string;
+  duration: number;
 };
 
 type ModulesState = {
@@ -12,6 +13,7 @@ type ModulesState = {
   removeModule: (id: string) => void;
   setModules: (newModules: Module[]) => void;
   updateModuleTitle: (id: string, newTitle: string) => void;
+  updateModuleDuration: (id: string, duration: number) => void;
 };
 
 export const useModulesStore = create<ModulesState>()(
@@ -22,7 +24,8 @@ export const useModulesStore = create<ModulesState>()(
         set((state) => {
           const newModule = { 
             id: Date.now().toString(), 
-            title 
+            title,
+            duration: 15,
           };
           return { 
             modules: [...state.modules, newModule]
@@ -49,6 +52,11 @@ export const useModulesStore = create<ModulesState>()(
           return { modules: updatedModules };
         });
       },
+      updateModuleDuration: (id, duration) => set((state) => ({
+        modules: state.modules.map(mod =>
+          mod.id === id ? { ...mod, duration } : mod
+        )
+      })),
     }),
     {
       name: 'modules-storage',
