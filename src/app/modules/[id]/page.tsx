@@ -52,7 +52,9 @@ type TableEditorProps = {
 
 const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
   const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
-  const addCol = () => onChange(value.map((row) => [...row, 'Cell content']));
+  const addCol = () => onChange(value.map((row, i) =>
+    [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
+  ));
   const updateCell = (rowIdx: number, colIdx: number, val: string) => {
     const newTable = value.map((row, r) =>
       row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
@@ -60,12 +62,12 @@ const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
     onChange(newTable);
   };
   return (
-    <div className="mb-2">
-      <table className="w-full border mb-2">
+    <div className="mb-6">
+      <table className="w-full border mb-4">
         <thead>
           <tr>
             {value[0].map((cell, idx) => (
-              <th key={idx} className="border px-2 py-1">{cell}</th>
+              <th key={idx} className="px-2 py-1">{cell}</th>
             ))}
           </tr>
         </thead>
@@ -75,7 +77,8 @@ const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
               {row.map((cell, cIdx) => (
                 <td key={cIdx} className="border px-2 py-1">
                   <input
-                    className="w-full"
+                    className="w-full focus:border p-1 rounded-sm focus:outline-none"
+                    placeholder='Cell content'
                     value={cell}
                     onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
                   />
@@ -85,8 +88,8 @@ const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
           ))}
         </tbody>
       </table>
-      <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
-      <button type="button" className="px-2 py-1 border rounded" onClick={addCol}>Add Column</button>
+      <button type="button" className="mr-2 px-2 py-1 border rounded-sm" onClick={addRow}>Add Row</button>
+      <button type="button" className="px-2 py-1 border rounded-sm" onClick={addCol}>Add Column</button>
     </div>
   );
 };
@@ -108,7 +111,7 @@ const Page = () => {
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
     const [formVideoUrl, setFormVideoUrl] = useState('');
-    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['Cell content', 'Cell content']]);
+    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
 
@@ -180,14 +183,12 @@ const Page = () => {
         setFormContent(topic.content || '');
         setFormImageUrl(topic.imageUrl || '');
         setFormVideoUrl(topic.videoUrl || '');
-        setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['Cell content', 'Cell content']]);
+        setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
     };
 
     if (!currentModule) {
         return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
     }
-
-    const totalDuration = modules.reduce((acc, mod) => acc + (mod.duration || 0), 0);
 
     return (
         <div className='w-full h-auto mx-auto'>
@@ -338,7 +339,7 @@ const Page = () => {
                                                 </div>
                                             ) : topic.type === 'table' ? (
                                                 <TableEditor
-                                                    value={topic.tableData || [['Header 1', 'Header 2'], ['Cell content', 'Cell content']]}
+                                                    value={topic.tableData || [['Header 1', 'Header 2'], ['', '']]}
                                                     onChange={data => updateTopic(moduleId, topic.id, { tableData: data })}
                                                 />
                                             ) : null}

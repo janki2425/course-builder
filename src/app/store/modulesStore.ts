@@ -1,66 +1,46 @@
 import { create } from "zustand";
-import { persist } from 'zustand/middleware';
+import { persist } from "zustand/middleware";
 
-type Module = {
-  id: string;
-  title: string;
-  duration: number;
-};
+type Module = { id: string; title: string; duration: number; };
 
 type ModulesState = {
   modules: Module[];
   addModule: (title: string) => void;
   removeModule: (id: string) => void;
-  setModules: (newModules: Module[]) => void;
   updateModuleTitle: (id: string, newTitle: string) => void;
   updateModuleDuration: (id: string, duration: number) => void;
+  setModules: (newModules: Module[]) => void; 
 };
 
 export const useModulesStore = create<ModulesState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       modules: [],
       addModule: (title) =>
-        set((state) => {
-          const newModule = { 
-            id: Date.now().toString(), 
-            title,
-            duration: 15,
-          };
-          return { 
-            modules: [...state.modules, newModule]
-          };
-        }),
+        set((state) => ({
+          modules: [
+            ...state.modules,
+            { id: Date.now().toString(), title, duration: 15 },
+          ],
+        })),
       removeModule: (id) =>
         set((state) => ({
-          modules: state.modules.filter((mod) => mod.id !== id)
+          modules: state.modules.filter((mod) => mod.id !== id),
         })),
-      setModules: (newModules: Module[]) => {
-        set({ modules: newModules });
-      },
-      updateModuleTitle: (id: string, newTitle: string) => {
-        set((state) => {
-          const moduleExists = state.modules.some(mod => mod.id === id);
-          
-          if (!moduleExists) {
-            return state;
-          }
-
-          const updatedModules = state.modules.map((mod) =>
+      updateModuleTitle: (id, newTitle) =>
+        set((state) => ({
+          modules: state.modules.map((mod) =>
             mod.id === id ? { ...mod, title: newTitle } : mod
-          );
-          return { modules: updatedModules };
-        });
-      },
-      updateModuleDuration: (id, duration) => set((state) => ({
-        modules: state.modules.map(mod =>
-          mod.id === id ? { ...mod, duration } : mod
-        )
-      })),
+          ),
+        })),
+      updateModuleDuration: (id, duration) =>
+        set((state) => ({
+          modules: state.modules.map((mod) =>
+            mod.id === id ? { ...mod, duration } : mod
+          ),
+        })),
+      setModules: (newModules) => set({ modules: newModules }),
     }),
-    {
-      name: 'modules-storage',
-      partialize: (state) => ({ modules: state.modules })
-    }
+    { name: "modules-storage" }
   )
 );
