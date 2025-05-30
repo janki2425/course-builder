@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useModulesStore } from "@/app/store/modulesStore"
+import { useTopicsStore } from "@/app/store/topicsStore"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -608,6 +610,25 @@ function SidebarMenuSubButton({
       )}
       {...props}
     />
+  )
+}
+
+export function AppSidebar() {
+  const modules = useModulesStore((s) => s.modules)
+  const topicsByModule = useTopicsStore((s) => s.topicsByModule)
+
+  const totalTopics = Object.values(topicsByModule).reduce(
+    (acc, curr) => acc + curr.length,
+    0
+  )
+  const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0)
+
+  return (
+    <aside>
+      <div>Modules: {modules.length}</div>
+      <div>Topics: {totalTopics}</div>
+      <div>Est. Duration: {totalDuration} minutes</div>
+    </aside>
   )
 }
 
