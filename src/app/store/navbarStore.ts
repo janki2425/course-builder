@@ -1,7 +1,10 @@
 'use client'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { NavbarState } from '@/utils/types'
+import { NavbarState, Course, CourseDetails } from '@/utils/types'
+
+
+
 
 export const useNavbarStore = create<NavbarState>()(
   persist(
@@ -10,11 +13,13 @@ export const useNavbarStore = create<NavbarState>()(
       moduleTitle: 'New Module',
       courses: {},
       isEditing: false,
+      isPublished: false,
       publish: false,
       save: [],
       setTitle: (title) => set({ title }),
       setModuleTitle: (moduleTitle) => set({ moduleTitle }),
       setIsEditing: (editing) => set({ isEditing: editing }),
+      setIsPublished: (published) => set({ isPublished: published }),
       togglePublish: () => set((state) => ({ publish: !state.publish })),
       setSave: (save) => set({ save }),
       setCourse: (courseId, courseData) =>
@@ -24,17 +29,21 @@ export const useNavbarStore = create<NavbarState>()(
             [courseId]: { ...state.courses[courseId], ...courseData },
           },
         })),
-      publishCourse: () => {
-        const courses = get().courses;
-        const title = get().title;
-        const course = courses[title];
-        if (course?.courseTitle?.trim()) {
+      publishCourse: (course: CourseDetails) => {
+        if (course.courseTitle?.trim()) {
           set((state) => ({ publish: !state.publish }));
           return true;
         }
         return false;
       },
-    }),
+      saveCourse: (course: CourseDetails) =>
+        set((state) => ({
+          courses: {
+            ...state.courses,
+            [course.courseId]: course,
+          },
+        })),
+      }),
     {
       name: 'navbar-storage',
       partialize: (state) => ({

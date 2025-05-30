@@ -3,64 +3,87 @@ import React from 'react'
 import Image from 'next/image'
 import { useNavbarStore } from '@/app/store/navbarStore'
 import { toast } from 'react-hot-toast'
+import { useModulesStore } from '@/app/store/modulesStore'
 
 
 const Navbar = () => {
     const {
         title,
-        courses,
         isEditing,
-        publish,
-        save,
+        isPublished,
         setTitle,
         setIsEditing,
         togglePublish,
-        setSave,
+        saveCourse,
+        setIsPublished
       } = useNavbarStore()
+
+      const modules = useModulesStore((state) => state.modules)
 
       const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value)
       }
 
       const handlePublish = () => {
-        const success = useNavbarStore.getState().publishCourse();
-        if (success) {
-            togglePublish();
-            toast.success(
-                <p className='text-[16px] font-[500]'>Course published!</p>
-            );
+        if (!isPublished) {
+          // Try to publish
+          const course = {
+            courseId: Date.now().toString(),
+            courseTitle: title,
+            courseDescription: "Your description here",
+            courseImage: "image-url-or-empty-string",
+            courseVideo: "video-url-or-empty-string",
+            modules
+          };
+          const success = useNavbarStore.getState().publishCourse(course);
+          if (success && title.trim() && modules.length > 0) {
+            setIsPublished(true);
+            toast.success(<p className='text-[16px] font-[500]'>Course published!</p>);
+          } else {
+            setIsPublished(false);
+            toast.error(<p className='text-[16px] font-[500]'>Please enter course details before publishing.</p>);
+          }
+        } else {
+          // Unpublish
+          setIsPublished(false);
+          toast('Course unpublished.', { icon: '🚫' });
         }
-        toast.error(
-            <p className='text-[16px] font-[500]'>Please enter course details before publishing.</p>
-        );
-        
       }
 
       const handleSave = () => {
-        if(courses.courseTitle) {
-            setSave([...save, title])
-            toast.success(
-                <div className='flex flex-col items-start justify-start gap-2'>
-                    <p className='text-[16px] font-[500]'>Course saved!</p>
-                    <p className='text-[14px] font-[400]'>All changes have been saved successfully.</p>
-                </div>
-                ,{
-                style:{
-                    borderRadius: '8px',
-                    background: '#ffffff',
-                    color: '#020817',
-                },
-                duration: 5000,
-                icon: null
-            });
+        if (!title.trim()) {
+          alert("Please enter a course title.");
+          return;
         }
-        else {
-            toast.error(
-                <div className='flex flex-col items-start justify-start gap-2'>
-                    <p className='text-[16px] font-[500]'>please enter a course details</p>
-                </div>
-            )
+        if (modules.length === 0) {
+          alert("Please add at least one module.");
+          return;
         }
+        // You can add more validation for topics, etc.
+
+        const course = {
+          courseId: Date.now().toString(),
+          courseTitle: title,
+          courseDescription: "Your description here",
+          courseImage: "image-url-or-empty-string",
+          courseVideo: "video-url-or-empty-string",
+          modules
+        }
+        saveCourse(course)
+        toast.success(
+            <div className='flex flex-col items-start justify-start gap-2'>
+                <p className='text-[16px] font-[500]'>Course saved!</p>
+                <p className='text-[14px] font-[400]'>All changes have been saved successfully.</p>
+            </div>
+            ,{
+            style:{
+                borderRadius: '8px',
+                background: '#ffffff',
+                color: '#020817',
+            },
+            duration: 5000,
+            icon: null
+        });
       }
       
   return (
@@ -103,11 +126,10 @@ const Navbar = () => {
             </button>
             <div className='flex items-center gap-2'>
                 <label htmlFor="publish" className='text-[12px] md:text-[14px] text-[#020817] font-[500]'>Publish</label>
-                {/* i want toggle on/off button */}
                 <div 
                 onClick={handlePublish}
-                className={`md:w-10 md:h-[24px] w-8 h-4 cursor-pointer flex items-center rounded-full transition-all duration-300 ${publish ? 'bg-[#9b87f5]' : 'bg-gray-300'}`}>
-                    <div className={`md:w-5 md:h-5 w-4 h-4 bg-white rounded-full transition-all duration-300 ${publish ? 'translate-x-full' : 'translate-x-[1px]'}`}></div>
+                className={`md:w-10 md:h-[24px] w-8 h-4 cursor-pointer flex items-center rounded-full transition-all duration-300 ${isPublished ? 'bg-[#9b87f5]' : 'bg-gray-300'}`}>
+                    <div className={`md:w-5 md:h-5 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isPublished ? 'translate-x-full' : 'translate-x-[1px]'}`}></div>
                 </div>
             </div>
         </div>

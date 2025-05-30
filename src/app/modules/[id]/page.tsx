@@ -51,10 +51,15 @@ type TableEditorProps = {
 };
 
 const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
+  const maxColumns = 10;
   const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
-  const addCol = () => onChange(value.map((row, i) =>
-    [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
-  ));
+  const addCol = () => {
+    if (value[0].length < maxColumns) {
+      onChange(value.map((row, i) =>
+        [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
+      ));
+    }
+  };
   const updateCell = (rowIdx: number, colIdx: number, val: string) => {
     const newTable = value.map((row, r) =>
       row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
@@ -88,8 +93,15 @@ const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
           ))}
         </tbody>
       </table>
-      <button type="button" className="mr-2 px-2 py-1 border rounded-sm" onClick={addRow}>Add Row</button>
-      <button type="button" className="px-2 py-1 border rounded-sm" onClick={addCol}>Add Column</button>
+      <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
+      <button
+        type="button"
+        className="px-2 py-1 border rounded"
+        onClick={addCol}
+        disabled={value[0].length >= maxColumns}
+      >
+        Add Column
+      </button>
     </div>
   );
 };
