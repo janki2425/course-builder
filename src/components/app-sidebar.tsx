@@ -167,7 +167,7 @@ export function AppSidebar({
             />
           </div>
         </div>
-        <div className="relative h-full w-full">
+        <div className="h-fit w-full mt-4">
           <SidebarTrigger
             disabled={isMobile}
             className={`absolute left-1/2 bottom-2 -translate-x-1/2 z-20 cursor-pointer w-full max-w-[200px] ${isCollapsed ? "max-w-[30px]" : "max-w-[200px]"} hover:bg-[#f2f2f2] p-4 rounded-lg transition-all duration-200`}
