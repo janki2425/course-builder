@@ -58,6 +58,7 @@ export type NavbarState = {
     setSave: (save: string[]) => void
     setSelectedModule: (moduleId: string | null) => void
     setCourse: (courseId: string, courseData: Partial<CourseDetails>) => void
+    deleteCourse: (courseId: string) => void
     addModuleToCourse: (courseId: string, module: Module) => void
     removeModuleFromCourse: (courseId: string, moduleId: string) => void
     updateModuleTitleInCourse: (courseId: string, moduleId: string, newTitle: string) => void
@@ -94,6 +95,12 @@ export const useNavbarStore = create<NavbarState>()(
             [courseId]: { ...state.courses[courseId], ...courseData },
           },
         })),
+      deleteCourse: (courseId: string) =>
+        set((state) => {
+          const updatedCourses = { ...state.courses };
+          delete updatedCourses[courseId];
+          return { courses: updatedCourses };
+        }),
       addModuleToCourse: (courseId: string, module: Module) =>
         set((state) => {
           const course = state.courses[courseId];

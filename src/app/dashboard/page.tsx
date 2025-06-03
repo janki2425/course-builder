@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 export default function DashboardPage() {
   const courses = useNavbarStore((s) => s.courses);
   const [showCreateCourseModal, setShowCreateCourseModal] = React.useState(false);
-  const { saveCourse } = useNavbarStore();
+  const { saveCourse, deleteCourse } = useNavbarStore();
   const router = useRouter();
 
   const [newCourseName, setNewCourseName] = React.useState('');
@@ -109,7 +109,17 @@ export default function DashboardPage() {
                     <td className="text-[12px] font-[400] px-4 py-2">
                       <div className="flex items-center gap-2">
                         <Image src="course/dashboard/edit.svg" alt="edit" width={14} height={14}/>
-                        <Image src="course/dashboard/delete.svg" alt="delete" width={14} height={14}/>
+                        <Image 
+                          src="course/dashboard/delete.svg" 
+                          alt="delete" 
+                          width={14} 
+                          height={14} 
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click
+                            deleteCourse(course.courseId);
+                          }}
+                        />
                       </div>
                     </td>
                   </tr>

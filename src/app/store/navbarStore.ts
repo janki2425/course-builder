@@ -137,7 +137,16 @@ export const useNavbarStore = create<NavbarState>()(
             [course.courseId]: course,
           },
         })),
-      }),
+      deleteCourse: (courseId: string) => {
+        set((state) => {
+          const updatedCourses = { ...state.courses };
+          delete updatedCourses[courseId]; // Use delete operator
+          // Manually save to local storage
+          localStorage.setItem('navbar-storage', JSON.stringify({ state: { courses: updatedCourses } }));
+          return { courses: updatedCourses };
+        });
+      },
+    }),
     {
       name: 'navbar-storage',
       partialize: (state) => ({
