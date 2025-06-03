@@ -204,6 +204,8 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                     {/* Render the form below the topic card */}
                                     {isEditing ? (
                                         <div className="w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#8a8a8a]">
+                                            {topic.type === 'text' || topic.type === 'information' ? (
+                                            <>
                                             <label className="block mb-1">Topic Title</label>
                                             <input
                                                 type="text"
@@ -212,6 +214,8 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                 className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
                                             />
                                             <label className="block text-sm font-medium mb-1">Content</label>
+                                            </>
+                                            ):( "" )}
                                             {topic.type === 'text' || topic.type === 'information' ? (
                                                 <textarea
                                                 placeholder='Enter text content...'
@@ -224,10 +228,10 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                 <div className="w-full flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg mb-4 relative bg-white">
                                                     <label
                                                         htmlFor={`image-upload-${topic.id}`}
-                                                        className="flex flex-col items-center justify-center w-full h-full cursor-pointer p-4"
+                                                        className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
                                                     >
                                                         {topic.imageUrl ? (
-                                                            <div className="relative w-full h-auto max-h-[250px] mb-4">
+                                                            <div className="relative w-full h-[200px]">
                                                                 <Image 
                                                                     src={topic.imageUrl} 
                                                                     alt="Preview" 
@@ -309,7 +313,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                 onChange={data => handleUpdateTopic(topic.id, { tableData: data })}
                                                 />
                                             ) : null}
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
                                                 <button
                                                     className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black"
                                                     onClick={e => {
