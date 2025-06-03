@@ -15,39 +15,91 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
-import { useModulesStore } from "@/app/store/modulesStore"
+import { useModulesStore, Module } from "@/app/store/modulesStore"
 import { useSidebarStore } from "@/app/store/sidebarStore"
 import { useTopicsStore } from "@/app/store/topicsStore"
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+import { useNavbarStore } from '@/app/store/navbarStore'
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  courseId?: string; // courseId is optional
+}
+
+export function AppSidebar({
+  courseId,
+  ...props
+}: AppSidebarProps) {
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
-  const modules = useModulesStore((state) => state.modules)
-  const topicsByModule = useTopicsStore((state) => state.topicsByModule)
-  const totalTopics = Object.values(topicsByModule).reduce((acc, curr) => acc + curr.length, 0);
-  const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0);
-  // Use your media query hook
-  const isMobile = useMediaQuery("(max-width: 767px)")
+  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, _hasHydrated } = useNavbarStore()
 
-  const addModule = useModulesStore((state) => state.addModule)
+  
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const getModuleTopicCount = (moduleId: string) => {
-    return topicsByModule[moduleId]?.length || 0;
-  };
-
-  // Sync Zustand state with sidebar state
   useEffect(() => {
     setCollapsed(isCollapsed)
   }, [isCollapsed, setCollapsed])
 
-  // Force collapse on mobile
   useEffect(() => {
     if (isMobile) setOpen(false)
   }, [isMobile, setOpen])
 
-  const handleBackToAdmin = () => {
-    router.push("/admin")
+  const course = courseId ? courses[courseId] : null
+
+  const modules = courseId && course ? course.modules || [] : []
+
+
+  // Wait for the store to be rehydrated and check if the current course data is available
+  if (!_hasHydrated || (courseId && !course)) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>{/* Optional: add a skeleton header */}</SidebarHeader>
+        <SidebarContent className="mt-[72px] p-4">
+          <div className="animate-pulse flex flex-col gap-4">
+            <div className="h-8 bg-gray-300 rounded"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+            </div>
+            <div className="h-10 bg-gray-300 rounded"></div>
+            <div className="space-y-2">
+              <div className="h-6 bg-gray-300 rounded"></div>
+              <div className="h-6 bg-gray-300 rounded"></div>
+              <div className="h-6 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </SidebarContent>
+        <SidebarFooter>{/* Optional: add a skeleton footer */}</SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  }
+
+  console.log('AppSidebar modules:', modules);
+
+  const topicsByModule = courseId && course ? (course.modules || []).reduce((acc, mod) => ({...acc, [mod.id]: mod.topics || []}), {}) : {}
+
+
+  const totalTopics = modules.reduce((acc, mod) => acc + (mod.topics?.length || 0), 0)
+  const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0)
+
+  const getModuleTopicCount = (moduleId: string) => {
+    const currentModule = modules.find(mod => mod.id === moduleId)
+    return currentModule?.topics?.length || 0
+  }
+
+  const handleAddModule = () => {
+    if (courseId) {
+      const newModule: Module = { id: Date.now().toString(), title: "New Module", duration: 15, topics: [] }
+      addModuleToCourse(courseId, newModule)
+    }
+  }
+
+
+  const handleBackToDashboard = () => {
+    router.push("/dashboard")
   }
 
   return (
@@ -60,7 +112,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="relative w-full">
             <button 
               type="button"
-              onClick={handleBackToAdmin}
+              onClick={handleBackToDashboard}
               className="flex gap-2 p-2 cursor-pointer items-center hover:bg-[#f2f2f2] rounded-lg mt-2 ml-2 w-fit transition-all duration-200 hover:translate-x-[-2px]"
             >
               <Image 
@@ -72,7 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               />
               {!isCollapsed && (
                   <span className="hidden md:block text-[#374252] text-[12px] lg:text-[14px] font-[500]">
-                    Back to Admin
+                    Back to Dashboard
                   </span>
                 )
               }
@@ -101,7 +153,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {!isCollapsed && (
                   <button
                   type="button"
-                  onClick={() => addModule("New Module")}
+                  onClick={handleAddModule}
+                  disabled={!courseId}
                   className='hidden md:flex cursor-pointer w-full bg-[#9b87f5] text-white text-[14px] font-[500] justify-center items-center gap-2 rounded-lg py-2 px-4 max-w-[200px] transition-all duration-200 hover:bg-[#8c7adc]'
                 >
                   <Image src="/sidebar/add.svg" alt="add" width={20} height={20} className="invert w-[20px] h-[20px] md:w-[16px] md:h-[16px] lg:w-[20px] lg:h-[20px] transition-transform duration-200 group-hover:translate-x-[-2px]"/>
@@ -111,7 +164,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {isCollapsed && (
                   <button
                   type="button"
-                  onClick={() => addModule("New Module")}
+                  onClick={handleAddModule}
+                  disabled={!courseId}
                   className='w-full bg-[#9b87f5] cursor-pointer text-white text-[14px] font-[500] flex justify-center items-center gap-2 rounded-lg py-2 max-w-[40px]'
                 >
                   <Image src="/sidebar/add.svg" alt="add" width={16} height={16} className="invert"/>
@@ -119,7 +173,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )}
               </div>
             </div>
-            <Modules isCollapsed={isCollapsed} getModuleTopicCount={getModuleTopicCount}/>
+            <Modules
+              isCollapsed={isCollapsed}
+              modules={modules}
+              getModuleTopicCount={getModuleTopicCount}
+              courseId={courseId}
+              removeModule={removeModuleFromCourse}
+              updateModuleTitle={updateModuleTitleInCourse}
+              reorderModules={reorderModulesInCourse}
+            />
           </div>
         </div>
         <div className="relative h-full w-full">

@@ -36,7 +36,7 @@ export default function RootLayout({
           <SidebarInset>
             
             <Toaster position="bottom-right"/>
-            <AppSidebar />
+            <AppSidebar/>
             <div
               className={`transition-all duration-300 ${
                 isCollapsed

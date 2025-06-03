@@ -1,6 +1,7 @@
 'use client'
 import CreateFirstModule from "@/components/CreateFirstModule"
 import { useSidebarStore } from "@/app/store/sidebarStore";
+import DashboardPage from "./dashboard/page";
 
 export default function Home() {
   const isCollapsed = useSidebarStore((s) => s.isCollapsed);
@@ -14,7 +15,7 @@ export default function Home() {
     <div
       
     >
-      <CreateFirstModule/>
+      <DashboardPage/>
     </div>
   );
 }

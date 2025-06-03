@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Topic } from '@/app/store/topicsStore';
 
-type Module = { id: string; title: string; duration: number; };
+export type Module = { id: string; title: string; duration: number; topics?: Topic[] };
 
 type ModulesState = {
   modules: Module[];

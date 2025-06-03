@@ -9,16 +9,19 @@ import { useModulesStore } from '@/app/store/modulesStore'
 const Navbar = () => {
     const {
         title,
+        courseDescription,
         isEditing,
         isPublished,
         setTitle,
         setIsEditing,
         togglePublish,
         saveCourse,
-        setIsPublished
+        setIsPublished,
+        courses
       } = useNavbarStore()
 
       const modules = useModulesStore((state) => state.modules)
+      const [currentCourseId, setCurrentCourseId] = React.useState<string | null>(null)
 
       const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value)
@@ -27,10 +30,19 @@ const Navbar = () => {
       const handlePublish = () => {
         if (!isPublished) {
           // Try to publish
+          // Generate a unique course ID
+          let courseId = 0;
+          for (let i=1;i<=1000; i++){
+            if(useNavbarStore.getState().courses[i] === undefined){
+              courseId = i;
+              break;
+            }
+          }
+          if (!courseId) return;
           const course = {
-            courseId: Date.now().toString(),
+            courseId: courseId ? courseId.toString() : '',
             courseTitle: title,
-            courseDescription: "Your description here",
+            courseDescription: courseDescription,
             courseImage: "image-url-or-empty-string",
             courseVideo: "video-url-or-empty-string",
             modules
@@ -51,18 +63,30 @@ const Navbar = () => {
       }
 
       const handleSave = () => {
-        if (!title.trim()) {
-          alert("Please enter a course title.");
-          return;
+        let courseId = currentCourseId;
+        if (!courseId) {
+          // Try to find by title
+          const existing = Object.values(courses).find(
+            (c: any) => c.courseTitle === title
+          );
+          if (existing) {
+            courseId = existing.courseId;
+            setCurrentCourseId(courseId);
+          }
         }
-        if (modules.length === 0) {
-          alert("Please add at least one module.");
-          return;
+        if (!courseId) {
+          // Generate a new ID only if this is a new course
+          for (let i = 1; i <= 1000; i++) {
+            if (courses[i] === undefined) {
+              courseId = i.toString();
+              setCurrentCourseId(courseId);
+              break;
+            }
+          }
         }
-        // You can add more validation for topics, etc.
-
+        if (!courseId) return;
         const course = {
-          courseId: Date.now().toString(),
+          courseId: courseId ? courseId : '',
           courseTitle: title,
           courseDescription: "Your description here",
           courseImage: "image-url-or-empty-string",
@@ -70,6 +94,7 @@ const Navbar = () => {
           modules
         }
         saveCourse(course)
+        window.location.reload();
         toast.success(
             <div className='flex flex-col items-start justify-start gap-2'>
                 <p className='text-[16px] font-[500]'>Course saved!</p>

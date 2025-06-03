@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import Image from 'next/image'
 import { useModulesStore } from "@/app/store/modulesStore"
@@ -18,11 +19,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from 'next/navigation'
+import { Module } from '@/app/store/modulesStore';
 
-const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemove: any, getModuleTopicCount: (moduleId: string) => number }) => {
+const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()
   const { setIsEditing } = useModuleEditStore();
-  const updateModuleTitle = useModulesStore((state) => state.updateModuleTitle);
   const topicsByModule = useTopicsStore((state) => state.topicsByModule);
   const [isEditing, setIsEditingLocal] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(mod.title);
@@ -32,7 +33,12 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
 
   const handleModuleClick = (id: string) => {
     if (!isEditing) {
-      router.push(`/modules/${id}`)
+      if (courseId) {
+        router.push(`/dashboard/courses/${courseId}/modules/${id}`);
+      } else {
+        // This case should ideally not happen if we are always in a course context
+        alert('Module navigation error: No course ID')
+      }
     }
   }
 
@@ -41,8 +47,8 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
   }
 
   const handleSave = () => {
-    if (inputValue.trim()) {
-      updateModuleTitle(mod.id, inputValue);
+    if (inputValue.trim() && courseId) {
+      updateModuleTitle(courseId, mod.id, inputValue);
     }
     setIsEditingLocal(false);
   }
@@ -54,8 +60,6 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
     transform: CSS.Transform.toString(transform),
     transition,
   };
-
-  
 
   return (
     <div
@@ -81,7 +85,7 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
           type="text" 
           value={inputValue}
           onChange={handleTitle}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()} // Prevent input click from triggering parent handlers
           onBlur={handleSave}
           onKeyDown={(e) => { 
             if (e.key === 'Enter') {
@@ -94,11 +98,14 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
         />
       ) : (
         <>
-          <span className="max-w-[30px] text-center text-[12px] lg:text-[14px] font-[700] truncate">
+          {/* Added onClick for navigation here */}
+          <span 
+            className="max-w-[120px] text-left text-[12px] lg:text-[14px] font-[700] truncate cursor-pointer"
+          >
             {mod.title}
           </span>
 
-          <div className="flex flex-col items-center justify-center gap-[1px]">
+          <div className="flex flex-col items-center justify-center gap-[1px] cursor-pointer"> {/* Also make topic count clickable */}
             <p className="text-[12px] lg:text-[14px] font-[500]">{topicCount}</p>
             <span className="text-[12px] lg:text-[14px] font-[500]">Topics</span>
           </div>
@@ -107,7 +114,7 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
             <button 
               type="button" 
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Prevent button click from triggering parent handlers
                 setIsEditingLocal(true);
               }}
               className="w-[22px] h-[22px] cursor-pointer"
@@ -119,8 +126,8 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
               type="button"
               className="w-[22px] h-[22px] cursor-pointer"
               onClick={(e) => {
-                e.stopPropagation();
-                onRemove(mod.id);
+                e.stopPropagation(); // Prevent button click from triggering parent handlers
+                onRemove(courseId, mod.id);
               }}
             >
               <Image src="/sidebar/delete.svg" alt="delete" width={14} height={14} />
@@ -132,11 +139,8 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount }: { mod: any, onRemo
   );
 };
 
-const SortableItemCollapsed = ({ mod, onClick }: any) => {
+const SortableItemCollapsed = ({ mod, onClick }: { mod: Module, onClick: (moduleId: string) => void }) => {
   const router = useRouter()
-  const handleModuleClick = (id: string) => {
-    router.push(`/modules/${id}`)
-  }
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: mod.id });
 
@@ -152,7 +156,6 @@ const SortableItemCollapsed = ({ mod, onClick }: any) => {
       className="w-full max-w-[47px] h-[17px] flex items-center justify-between cursor-pointer border-[1px] border-[#E5E7EB] shadow-sm rounded-lg active:bg-[#eff6ff]"
       onClick={() => {
         onClick(mod.id)
-        handleModuleClick(mod.id)
       }}
     >
       {/* Make only this the drag handle */}
@@ -161,12 +164,44 @@ const SortableItemCollapsed = ({ mod, onClick }: any) => {
   );
 };
 
-const Modules = ({ isCollapsed, getModuleTopicCount }: { isCollapsed: boolean, getModuleTopicCount: (moduleId: string) => number }) => {
-  const router = useRouter()
-  const modules = useModulesStore((state) => state.modules);
-  const setModules = useModulesStore((state) => state.setModules);
-  const removeModule = useModulesStore((state) => state.removeModule);
-  const removeModuleTopics = useTopicsStore((state) => state.removeModuleTopics);
+interface ModulesProps {
+  isCollapsed: boolean;
+  modules: Module[];
+  getModuleTopicCount: (moduleId: string) => number;
+  courseId?: string;
+  removeModule: (courseId: string, moduleId: string) => void;
+  updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void;
+  reorderModules: (courseId: string, orderedModules: Module[]) => void;
+}
+
+const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeModule, reorderModules, updateModuleTitle }: ModulesProps) => {
+  const router = useRouter();
+  const { setIsEditing } = useModuleEditStore();
+
+  console.log('Modules component modules:', modules);
+
+  const handleRemoveModule = (courseId: string | undefined, moduleId: string) => {
+    if (courseId) {
+      console.log("Removing module", moduleId);
+      removeModule(courseId, moduleId);
+    } else {
+      // This case should not happen if we are always in a course context
+      alert('Module removal error: No course ID')
+    }
+    // We no longer need to remove from global topics store
+    // useTopicsStore.getState().removeModuleTopics(moduleId);
+  };
+
+  const handleModuleClick = (moduleId: string) => {
+    if (!setIsEditing) {
+      if (courseId) {
+        router.push(`/dashboard/courses/${courseId}/modules/${moduleId}`);
+      } else {
+        // This case should not happen if we are always in a course context
+        alert('Module navigation error: No course ID')
+      }
+    }
+  };
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -177,25 +212,24 @@ const Modules = ({ isCollapsed, getModuleTopicCount }: { isCollapsed: boolean, g
       const oldIndex = modules.findIndex((m) => m.id === active.id);
       const newIndex = modules.findIndex((m) => m.id === over?.id);
 
-      setModules(arrayMove(modules, oldIndex, newIndex));
+      const newOrderedModules = arrayMove(modules, oldIndex, newIndex);
+
+      if (courseId) {
+        reorderModules(courseId, newOrderedModules);
+      } else {
+        // This case should not happen if we are always in a course context
+        alert('Module reordering error: No course ID')
+      }
     }
   };
 
-  const handleRemoveModule = (moduleId: string) => {
-    removeModule(moduleId);
-    removeModuleTopics(moduleId);
-  };
-
   if (isCollapsed) {
-    const handleModuleClick = (id: string) => {
-      router.push(`/modules/${id}`);
-    };
     return (
       <div className="flex flex-col gap-2 items-center justify-center mt-4">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
             {modules.map((mod) => (
-              <SortableItemCollapsed key={mod.id} mod={mod} onClick={handleModuleClick}/>
+              <SortableItemCollapsed key={mod.id} mod={mod} onClick={handleModuleClick} />
             ))}
           </SortableContext>
         </DndContext>
@@ -214,7 +248,7 @@ const Modules = ({ isCollapsed, getModuleTopicCount }: { isCollapsed: boolean, g
           <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-2 items-center justify-center mt-4">
               {modules.map((mod) => (
-                <SortableItem key={mod.id} mod={mod} onRemove={handleRemoveModule} getModuleTopicCount={getModuleTopicCount} />
+                <SortableItem key={mod.id} mod={mod} onRemove={handleRemoveModule} getModuleTopicCount={getModuleTopicCount} courseId={courseId} updateModuleTitle={updateModuleTitle} />
               ))}
             </div>
           </SortableContext>
