@@ -1,11 +1,22 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { useModulesStore } from '@/app/store/modulesStore'
+import { useNavbarStore } from '@/app/store/navbarStore'
 
-const CreateFirstModule = () => {
-    const addModule = useModulesStore((state) => state.addModule)
-    const modules = useModulesStore((state) => state.modules)
+interface CreateFirstModuleProps {
+  courseId: string;
+}
+
+const CreateFirstModule = ({ courseId }: CreateFirstModuleProps) => {
+    const { addModuleToCourse, courses } = useNavbarStore();
+    const modules = courses[courseId]?.modules || [];
+    
+    const handleAddModule = () => {
+      if (courseId) {
+        addModuleToCourse(courseId, { id: Date.now().toString(), title: "New Module", duration: 15, topics: [] });
+      }
+    };
+
   return (
     <>
     {modules.length > 0 ? (
@@ -35,7 +46,7 @@ const CreateFirstModule = () => {
         <h2 className='text-[18px] md:text-[20px] lg:text-[24px] font-[700] text-[#1f2937] mb-[8px] md:mb-[12px] lg:mb-[16px] transition-all duration-300'>Create your first course module</h2>
         <p className='text-[12px] lg:text-[16px] text-[#4B5563] mb-[16px] lg:mb-[32px] transition-all duration-300'>Start building your course by creating a module in the sidebar. Add topics to each module to create a comprehensive learning experience.</p>
         <button 
-        onClick={() => addModule("New Module")}
+        onClick={handleAddModule}
         className='w-full max-w-[160px] md:max-w-[185px] cursor-pointer mx-auto bg-[#9B87F5] md:py-[8px] md:px-[16px] py-[6px] px-[12px] rounded-md flex items-center justify-center gap-[8px] transition-all duration-300 hover:bg-[#8c7adc]'>
             <span className='text-[12px] md:text-[14px] text-white transition-all duration-300'>Create First Module</span>
             <Image src="/course/right-arrow.svg" alt="right-arrow" width={16} height={16} className='invert w-[12px] h-[12px] md:w-[16px] md:h-[16px] transition-all duration-300'/>

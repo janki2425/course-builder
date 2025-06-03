@@ -1,11 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Topic, useTopicsStore, TopicType } from '@/app/store/topicsStore';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Module } from '@/app/store/modulesStore';
+import { Topic, TopicType } from '@/utils/types';
+import { Module } from '@/utils/types';
 
 
 const topicTypes = [
@@ -47,69 +47,71 @@ const topicTypes = [
 ]
 
 type TableEditorProps = {
-  value: string[][];
-  onChange: (val: string[][]) => void;
-};
-
-const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
-  const maxColumns = 10;
-  const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
-  const addCol = () => {
-    if (value[0].length < maxColumns) {
-      onChange(value.map((row, i) =>
-        [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
-      ));
-    }
-  };
-  const updateCell = (rowIdx: number, colIdx: number, val: string) => {
-    const newTable = value.map((row, r) =>
-      row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
-    );
-    onChange(newTable);
-  };
-  return (
-    <div className="mb-6">
-      <table className="w-full border mb-4">
-        <thead>
-          <tr>
-            {value[0].map((cell, idx) => (
-              <th key={idx} className="px-2 py-1">{cell}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {value.slice(1).map((row, rIdx) => (
-            <tr key={rIdx}>
-              {row.map((cell, cIdx) => (
-                <td key={cIdx} className="border px-2 py-1">
-                  <input
-                    className="w-full focus:border p-1 rounded-sm focus:outline-none"
-                    placeholder='Cell content'
-                    value={cell}
-                    onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
-                  />
-                </td>
+      value: string[][];
+      onChange: (val: string[][]) => void;
+    };
+    
+    const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
+      const maxColumns = 10;
+      const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
+      const addCol = () => {
+        if (value[0].length < maxColumns) {
+          onChange(value.map((row, i) =>
+            [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
+          ));
+        }
+      };
+      const updateCell = (rowIdx: number, colIdx: number, val: string) => {
+        const newTable = value.map((row, r) =>
+          row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
+        );
+        onChange(newTable);
+      };
+      return (
+        <div className="mb-6">
+          <table className="w-full border mb-4">
+            <thead>
+              <tr>
+                {value[0].map((cell, idx) => (
+                  <th key={idx} className="px-2 py-1">{cell}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {value.slice(1).map((row, rIdx) => (
+                <tr key={rIdx}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} className="border px-2 py-1">
+                      <input
+                        className="w-full focus:border p-1 rounded-sm focus:outline-none"
+                        placeholder='Cell content'
+                        value={cell}
+                        onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
+                      />
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
-      <button
-        type="button"
-        className="px-2 py-1 border rounded"
-        onClick={addCol}
-        disabled={value[0].length >= maxColumns}
-      >
-        Add Column
-      </button>
-    </div>
-  );
+           </tbody>
+          </table>
+          <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
+          <button
+            type="button"
+            className="px-2 py-1 border rounded"
+            onClick={addCol}
+            disabled={value[0].length >= maxColumns}
+          >
+            Add Column
+            </button>
+        </div>
+    );
 };
 
-const Page = () => {
+const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string | null }) => {
     const params = useParams();
-    const moduleId = params.moduleId as string;
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const courseId = params.courseId as string;
     const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
@@ -117,10 +119,7 @@ const Page = () => {
     const moduleTitle = currentModule?.title || 'New Module';
     const moduleDuration = currentModule?.duration;
 
-    // Wait for store hydration
-    if (!_hasHydrated) {
-        return <div className='w-full h-full flex items-center justify-center'>Loading...</div>;
-    }
+    
 
     // Handle case where course or module is not found
     if (!course) {
@@ -134,7 +133,7 @@ const Page = () => {
     const { isEditing, setIsEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
-    const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
+    // const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
     const [isEditingTopicTitle, setIsEditingTopicTitle] = useState(false);
     const [topicTitle, setTopicTitle] = useState('');
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
@@ -153,13 +152,13 @@ const Page = () => {
         }
     }, [isEditing, moduleTitle]);
 
-    useEffect(() => {
-        if (selectedTopic) {
-            const topicName = topicTypes.find(topic => topic.id === selectedTopic)?.name || '';
-            setTopicTitle(`New ${topicName}`);
-            setIsEditingTopicTitle(false);
-        }
-    }, [selectedTopic]);
+    // useEffect(() => {
+    //     if (selectedTopic) {
+    //         const topicName = topicTypes.find(topic => topic.id === selectedTopic)?.name || '';
+    //         setTopicTitle(`New ${topicName}`);
+    //         setIsEditingTopicTitle(false);
+    //     }
+    // }, [selectedTopic]);
 
     const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
@@ -181,7 +180,7 @@ const Page = () => {
 
         // Create new topic
         const newTopic: Topic = {
-            id: Date.now(),
+            id: (currentModule.topics?.length || 0) + 1,
             title: `New ${topicType.name}`,
             type: topicType.type as TopicType,
             content: '',
@@ -193,7 +192,8 @@ const Page = () => {
         // Update module with new topic
         const updatedModule = {
             ...currentModule,
-            topics: [...(currentModule.topics || []), newTopic]
+            // topics: [...(currentModule.topics || []), newTopic]
+            topics: [...(currentModule.topics || []), newTopic] as Topic[]
         };
 
         // Update course with updated module
@@ -217,6 +217,11 @@ const Page = () => {
         setFormImageUrl(topic.imageUrl || '');
         setFormVideoUrl(topic.videoUrl || '');
         setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
+        
+        // Update URL with topic ID
+        const currentSearchParams = new URLSearchParams(searchParams.toString());
+        currentSearchParams.set('topic', topic.id.toString());
+        router.push(`${pathname}?${currentSearchParams.toString()}`);
     };
 
     const handleDeleteTopic = async (topicId: number) => {
@@ -228,7 +233,7 @@ const Page = () => {
             // Update module with topic removed
             const updatedModule = {
                 ...currentModule,
-                topics: (currentModule.topics || []).filter((t: Topic) => t.id !== topicId)
+                topics: (currentModule.topics || []).filter((t: Topic) => t.id !== topicId) as Topic[]
             };
 
             // Update course with updated module
@@ -251,9 +256,7 @@ const Page = () => {
         // Update module with updated topic
         const updatedModule = {
             ...currentModule,
-            topics: (currentModule.topics || []).map((t: Topic) => 
-                t.id === topicId ? { ...t, ...updates } : t
-            )
+            topics: (currentModule.topics || []).map((t: Topic) => t.id === topicId ? { ...t, ...updates } : t) as Topic[] 
         };
 
         // Update course with updated module
@@ -310,7 +313,7 @@ const Page = () => {
 
                     {/* display topic details */}
                 <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${activeTopic ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>
-                    {activeTopic ? (  
+                    {topics.length > 0 ? (
                     <div className='w-full flex flex-col gap-4'>
                         {topics.map((topic: Topic) => {
                             const topicType = topicTypes.find(tt => tt.name.toLowerCase().includes(topic.type));
@@ -325,7 +328,7 @@ const Page = () => {
                                             <label className="block mb-1">Topic Title</label>
                                             <input
                                                 type="text"
-                                                value={topic.title}
+                                                value={topic.title || ''}
                                                 onChange={e => handleUpdateTopic(topic.id, { title: e.target.value })}
                                                 className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
                                             />
@@ -415,8 +418,8 @@ const Page = () => {
                                                 </div>
                                             ) : topic.type === 'table' ? (
                                                 <TableEditor
-                                                    value={topic.tableData || [['Header 1', 'Header 2'], ['', '']]}
-                                                    onChange={data => handleUpdateTopic(topic.id, { tableData: data })}
+                                                value={topic.tableData as string[][] || [['Header 1', 'Header 2'], ['', '']]}
+                                                onChange={data => handleUpdateTopic(topic.id, { tableData: data })}
                                                 />
                                             ) : null}
                                             <div className="flex gap-2">
@@ -424,7 +427,11 @@ const Page = () => {
                                                     className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black"
                                                     onClick={e => {
                                                         e.stopPropagation();
-                                                        setEditingTopicId(null)
+                                                        setEditingTopicId(null);
+                                                        // Remove topic ID from URL
+                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
+                                                        currentSearchParams.delete('topic');
+                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
                                                     }}
                                                 >
                                                     Cancel
@@ -434,6 +441,10 @@ const Page = () => {
                                                     onClick={e => {
                                                         e.stopPropagation();
                                                         setEditingTopicId(null);
+                                                        // Remove topic ID from URL
+                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
+                                                        currentSearchParams.delete('topic');
+                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
                                                     }}
                                                 >
                                                     Save Topic
@@ -443,13 +454,15 @@ const Page = () => {
                                     ) : (
                                         <div
                                             className="relative w-full flex px-4 py-8 items-center justify-between shadow-lg rounded-lg"
-                                            onClick={() => setEditingTopicId(topic.id)}
+                                            // onClick={() => setEditingTopicId(topic.id)}
+                                            onClick={() => openEditForm(topic)}
                                         >
                                             <div className='w-full flex items-center gap-4'>
                                                 <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='opacity-80'/>
                                                 <Image src={topicType?.icon || ''} alt={topicType?.name || ''} width={20} height={20} className='opacity-80'/>
                                                 <h3 className='text-[14px] font-[500] text-[#020817] opacity-80'>
-                                                    {topic.title}
+                                                    {/* {topic.title} */}
+                                                    {topic.title || ''}
                                                 </h3>
                                             </div>
                                             <div className='flex items-center justify-center gap-4 transition-all duration-300'>
@@ -459,9 +472,9 @@ const Page = () => {
                                                     width={16}
                                                     height={16}
                                                     className='opacity-60 cursor-pointer'
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        openEditForm(topic);
+                                                    onClick={(e)=>{
+                                                        openEditForm(topic)
+                                                        e.stopPropagation()
                                                     }}
                                                 />
                                                 <Image
@@ -553,4 +566,4 @@ const Page = () => {
     )
 }
 
-export default Page
+export default ModulePage

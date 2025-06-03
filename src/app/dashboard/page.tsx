@@ -3,7 +3,6 @@
 import React from "react"
 import Image from "next/image"
 import { useNavbarStore } from "@/app/store/navbarStore"
-import { useModulesStore } from "@/app/store/modulesStore"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 
@@ -11,7 +10,6 @@ export default function DashboardPage() {
   const courses = useNavbarStore((s) => s.courses);
   const [showCreateCourseModal, setShowCreateCourseModal] = React.useState(false);
   const { saveCourse } = useNavbarStore();
-  const modules = useModulesStore((state) => state.modules);
   const router = useRouter();
 
   const [newCourseName, setNewCourseName] = React.useState('');

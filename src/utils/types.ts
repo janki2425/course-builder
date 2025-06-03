@@ -1,11 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Module } from '@/app/store/modulesStore'
+
+export type Module = {
+  id: string;
+  title: string;
+  duration: number;
+  topics: Topic[];
+}
+
+
+export type TopicType = 'text' | 'image' | 'video' | 'table' | 'information';
+export type Topic = {
+    id: number;
+    type: TopicType;
+    title: string;
+    content?: string;
+    imageUrl?: string;
+    videoUrl?: string;
+    tableData?: string[][];
+    duration?: number;
+    topics?: Topic[];
+};
 
 export type Course = {
     id: string
     title: string
-    modules: any[]
+    modules: Module[]
 }
 
 export type CourseDetails = {
@@ -15,6 +35,7 @@ export type CourseDetails = {
     courseImage: string
     courseVideo: string
     modules: any[]
+    isPublished?: boolean
 }
 
 export type NavbarState = {
@@ -26,6 +47,7 @@ export type NavbarState = {
     isPublished: boolean
     publish: boolean
     save: string[]
+    selectedModule: string | null
     saveCourse: (course: CourseDetails) => void
     setTitle: (title: string) => void
     setModuleTitle: (moduleTitle: string) => void
@@ -34,6 +56,7 @@ export type NavbarState = {
     togglePublish: () => void
     setIsPublished: (published: boolean) => void
     setSave: (save: string[]) => void
+    setSelectedModule: (moduleId: string | null) => void
     setCourse: (courseId: string, courseData: Partial<CourseDetails>) => void
     addModuleToCourse: (courseId: string, module: Module) => void
     removeModuleFromCourse: (courseId: string, moduleId: string) => void
@@ -55,6 +78,7 @@ export const useNavbarStore = create<NavbarState>()(
       isPublished: false,
       publish: false,
       save: [],
+      selectedModule: null,
       setTitle: (title) => set({ title }),
       setModuleTitle: (moduleTitle) => set({ moduleTitle }),
       setIsEditing: (editing) => set({ isEditing: editing }),
@@ -62,6 +86,7 @@ export const useNavbarStore = create<NavbarState>()(
       setIsPublished: (published) => set({ isPublished: published }),
       togglePublish: () => set((state) => ({ publish: !state.publish })),
       setSave: (save) => set({ save }),
+      setSelectedModule: (moduleId: string | null) => set({ selectedModule: moduleId }),
       setCourse: (courseId: string, courseData: Partial<CourseDetails>) =>
         set((state) => ({
           courses: {
@@ -171,3 +196,4 @@ export const useNavbarStore = create<NavbarState>()(
     }
   )
 );
+

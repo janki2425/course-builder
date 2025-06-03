@@ -12,13 +12,13 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
-import { useModulesStore, Module } from "@/app/store/modulesStore"
 import { useSidebarStore } from "@/app/store/sidebarStore"
-import { useTopicsStore } from "@/app/store/topicsStore"
 import { useNavbarStore } from '@/app/store/navbarStore'
+import { Module } from '@/utils/types'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   courseId?: string; // courseId is optional
@@ -32,7 +32,7 @@ export function AppSidebar({
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
-  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, _hasHydrated } = useNavbarStore()
+  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, _hasHydrated , updateModuleDurationInCourse } = useNavbarStore()
 
   
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -49,40 +49,7 @@ export function AppSidebar({
 
   const modules = courseId && course ? course.modules || [] : []
 
-
-  // Wait for the store to be rehydrated and check if the current course data is available
-  if (!_hasHydrated || (courseId && !course)) {
-    return (
-      <Sidebar collapsible="icon" {...props}>
-        <SidebarHeader>{/* Optional: add a skeleton header */}</SidebarHeader>
-        <SidebarContent className="mt-[72px] p-4">
-          <div className="animate-pulse flex flex-col gap-4">
-            <div className="h-8 bg-gray-300 rounded"></div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
-            </div>
-            <div className="h-10 bg-gray-300 rounded"></div>
-            <div className="space-y-2">
-              <div className="h-6 bg-gray-300 rounded"></div>
-              <div className="h-6 bg-gray-300 rounded"></div>
-              <div className="h-6 bg-gray-300 rounded"></div>
-            </div>
-          </div>
-        </SidebarContent>
-        <SidebarFooter>{/* Optional: add a skeleton footer */}</SidebarFooter>
-        <SidebarRail />
-      </Sidebar>
-    );
-  }
-
-  console.log('AppSidebar modules:', modules);
-
-  const topicsByModule = courseId && course ? (course.modules || []).reduce((acc, mod) => ({...acc, [mod.id]: mod.topics || []}), {}) : {}
-
-
-  const totalTopics = modules.reduce((acc, mod) => acc + (mod.topics?.length || 0), 0)
+  const totalTopics = modules.reduce((acc: number, mod: Module) => acc + (mod.topics?.length || 0), 0);
   const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0)
 
   const getModuleTopicCount = (moduleId: string) => {
@@ -92,12 +59,18 @@ export function AppSidebar({
 
   const handleAddModule = () => {
     if (courseId) {
-      const newModule: Module = { id: Date.now().toString(), title: "New Module", duration: 15, topics: [] }
+      const newModule: Module = { 
+        id: (modules.length + 1).toString(), 
+        title: "New Module", 
+        duration: 15, 
+        topics: [] 
+      }
       addModuleToCourse(courseId, newModule)
     }
   }
 
-
+  const dashboardPath = usePathname();
+  const dashboard = dashboardPath == '/dashboard';
   const handleBackToDashboard = () => {
     router.push("/dashboard")
   }
@@ -107,7 +80,17 @@ export function AppSidebar({
       <SidebarHeader>
         
       </SidebarHeader>
-      <SidebarContent className="mt-[72px]">
+      <SidebarContent>
+
+        {dashboard ? (
+          <div className="mt-[72px] px-1">
+          <div className="w-full flex gap-4 items-center justify-start py-2 px-4 rounded-sm bg-gray-200">
+            <Image src={'/course/course.svg'} width={20} height={20} alt="course"/>
+            <h3 className="text-[18px] text-[#4b4b4b] font-[500]">Courses</h3>
+          </div>
+        </div>
+        ):(
+          <div className="mt-[72px]">
         <div className="flex w-full items-center">
           <div className="relative w-full">
             <button 
@@ -190,6 +173,10 @@ export function AppSidebar({
             className={`absolute left-1/2 bottom-2 -translate-x-1/2 z-20 cursor-pointer w-full max-w-[200px] ${isCollapsed ? "max-w-[30px]" : "max-w-[200px]"} hover:bg-[#f2f2f2] p-4 rounded-lg transition-all duration-200`}
           />
         </div>
+        </div>
+        )}
+
+        
       </SidebarContent>
       <SidebarFooter>
         
