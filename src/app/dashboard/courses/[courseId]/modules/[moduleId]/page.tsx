@@ -1,10 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { useModulesStore } from '@/app/store/modulesStore';
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Topic, useTopicsStore, TopicType } from '@/app/store/topicsStore';
+import { useNavbarStore } from '@/app/store/navbarStore';
+import { Topic, TopicType } from '@/utils/types';
+import { Module } from '@/utils/types';
 
 
 const topicTypes = [
@@ -46,76 +47,93 @@ const topicTypes = [
 ]
 
 type TableEditorProps = {
-  value: string[][];
-  onChange: (val: string[][]) => void;
-};
-
-const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
-  const maxColumns = 10;
-  const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
-  const addCol = () => {
-    if (value[0].length < maxColumns) {
-      onChange(value.map((row, i) =>
-        [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
-      ));
-    }
-  };
-  const updateCell = (rowIdx: number, colIdx: number, val: string) => {
-    const newTable = value.map((row, r) =>
-      row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
-    );
-    onChange(newTable);
-  };
-  return (
-    <div className="mb-6">
-      <table className="w-full border mb-4">
-        <thead>
-          <tr>
-            {value[0].map((cell, idx) => (
-              <th key={idx} className="px-2 py-1">{cell}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {value.slice(1).map((row, rIdx) => (
-            <tr key={rIdx}>
-              {row.map((cell, cIdx) => (
-                <td key={cIdx} className="border px-2 py-1">
-                  <input
-                    className="w-full focus:border p-1 rounded-sm focus:outline-none"
-                    placeholder='Cell content'
-                    value={cell}
-                    onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
-                  />
-                </td>
+      value: string[][];
+      onChange: (val: string[][]) => void;
+    };
+    
+    const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
+      const maxColumns = 10;
+      const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
+      const addCol = () => {
+        if (value[0].length < maxColumns) {
+          onChange(value.map((row, i) =>
+            [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
+          ));
+        }
+      };
+      const updateCell = (rowIdx: number, colIdx: number, val: string) => {
+        const newTable = value.map((row, r) =>
+          row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
+        );
+        onChange(newTable);
+      };
+      return (
+        <div className="mb-6">
+          <table className="w-full border mb-4">
+            <thead>
+              <tr>
+                {value[0].map((cell, idx) => (
+                  <th key={idx} className="px-2 py-1">{cell}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {value.slice(1).map((row, rIdx) => (
+                <tr key={rIdx}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} className="border px-2 py-1">
+                      <input
+                        className="w-full focus:border p-1 rounded-sm focus:outline-none"
+                        placeholder='Cell content'
+                        value={cell}
+                        onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
+                      />
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
-      <button
-        type="button"
-        className="px-2 py-1 border rounded"
-        onClick={addCol}
-        disabled={value[0].length >= maxColumns}
-      >
-        Add Column
-      </button>
-    </div>
-  );
+           </tbody>
+          </table>
+          <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
+          <button
+            type="button"
+            className="px-2 py-1 border rounded"
+            onClick={addCol}
+            disabled={value[0].length >= maxColumns}
+          >
+            Add Column
+            </button>
+        </div>
+    );
 };
 
-const Page = () => {
+const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string | null }) => {
     const params = useParams();
-    const moduleId = params.id as string;
-    const modules = useModulesStore((state) => state.modules);
-    const updateModuleTitle = useModulesStore((state) => state.updateModuleTitle);
-    const updateModuleDuration = useModulesStore((state) => state.updateModuleDuration);
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const courseId = params.courseId as string;
+    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
+    const course = courseId ? courses[courseId] : null;
+    const currentModule = course?.modules?.find(mod => mod.id === moduleId);
+    const moduleTitle = currentModule?.title || 'New Module';
+    const moduleDuration = currentModule?.duration;
+
+    
+
+    // Handle case where course or module is not found
+    if (!course) {
+        return <div className='w-full h-full flex items-center justify-center'>Course not found</div>;
+    }
+
+    if (!currentModule) {
+        return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
+    }
+
     const { isEditing, setIsEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
-    const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
+    // const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
     const [isEditingTopicTitle, setIsEditingTopicTitle] = useState(false);
     const [topicTitle, setTopicTitle] = useState('');
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
@@ -127,10 +145,6 @@ const Page = () => {
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
 
-    const currentModule = modules.find(mod => mod.id === moduleId);
-    const moduleTitle = currentModule?.title || 'New Module';
-    const moduleDuration = currentModule?.duration;
-
     // Set initial input value when editing starts
     useEffect(() => {
         if (isEditing) {
@@ -138,54 +152,61 @@ const Page = () => {
         }
     }, [isEditing, moduleTitle]);
 
-    useEffect(() => {
-        if (selectedTopic) {
-            const topicName = topicTypes.find(topic => topic.id === selectedTopic)?.name || '';
-            setTopicTitle(`New ${topicName}`);
-            setIsEditingTopicTitle(false);
-        }
-    }, [selectedTopic]);
+    // useEffect(() => {
+    //     if (selectedTopic) {
+    //         const topicName = topicTypes.find(topic => topic.id === selectedTopic)?.name || '';
+    //         setTopicTitle(`New ${topicName}`);
+    //         setIsEditingTopicTitle(false);
+    //     }
+    // }, [selectedTopic]);
 
     const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
     }
 
     const handleSave = () => {
-        if (inputValue.trim() && moduleId) {
-            updateModuleTitle(moduleId, inputValue);
+        if (inputValue.trim() && moduleId && courseId) {
+            updateModuleTitleInCourse(courseId, moduleId, inputValue);
         }
         setIsEditing(false);
     }
 
-    const {
-        topicsByModule,
-        activeTopicId,
-        addTopic,
-        setActiveTopicId,
-        updateTopic,
-        deleteTopic,
-    } = useTopicsStore();
-
-    const topics = topicsByModule[moduleId] || [];
-    const activeTopic = topics.find(t => t.id === activeTopicId);
-
-    const handleTopicTitleChange = (val: string) => {
-        if (activeTopic) updateTopic(moduleId, activeTopic.id, { title: val });
-    };
-
-    const handleTopicContentChange = (val: string) => {
-        if (activeTopic) updateTopic(moduleId, activeTopic.id, { content: val });
-    };
+    const topics = currentModule.topics || [];
+    const activeTopic = topics.find((t: Topic) => t.id === editingTopicId);
 
     const handleTopicSelection = (topicTypeId: number) => {
         const topicType = topicTypes.find(t => t.id === topicTypeId);
-        if (!topicType) return;
-        addTopic(moduleId, topicType.type as TopicType, topicType.name);
-        // Find the new topic and open the form
-        setTimeout(() => {
-            const latest = useTopicsStore.getState().topicsByModule[moduleId].at(-1);
-            if (latest) openEditForm(latest);
-        }, 0);
+        if (!topicType || !moduleId || !courseId || !currentModule) return;
+
+        // Create new topic
+        const newTopic: Topic = {
+            id: (currentModule.topics?.length || 0) + 1,
+            title: `New ${topicType.name}`,
+            type: topicType.type as TopicType,
+            content: '',
+            imageUrl: '',
+            videoUrl: '',
+            tableData: topicType.type === 'table' ? [['Header 1', 'Header 2'], ['', '']] : undefined
+        };
+
+        // Update module with new topic
+        const updatedModule = {
+            ...currentModule,
+            // topics: [...(currentModule.topics || []), newTopic]
+            topics: [...(currentModule.topics || []), newTopic] as Topic[]
+        };
+
+        // Update course with updated module
+        const updatedModules = course.modules.map((mod: Module) => 
+            mod.id === moduleId ? updatedModule : mod
+        );
+
+        setCourse(courseId, {
+            modules: updatedModules
+        });
+
+        // Open edit form for new topic
+        openEditForm(newTopic);
         setIsAddingTopic(false);
     };
 
@@ -196,17 +217,63 @@ const Page = () => {
         setFormImageUrl(topic.imageUrl || '');
         setFormVideoUrl(topic.videoUrl || '');
         setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
+        
+        // Update URL with topic ID
+        const currentSearchParams = new URLSearchParams(searchParams.toString());
+        currentSearchParams.set('topic', topic.id.toString());
+        router.push(`${pathname}?${currentSearchParams.toString()}`);
     };
 
-    if (!currentModule) {
-        return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
-    }
+    const handleDeleteTopic = async (topicId: number) => {
+        if (!moduleId || !courseId || !currentModule) return;
+        setDeletingTopicId(topicId);
+        try {
+            await new Promise(res => setTimeout(res, 400));
+            
+            // Update module with topic removed
+            const updatedModule = {
+                ...currentModule,
+                topics: (currentModule.topics || []).filter((t: Topic) => t.id !== topicId) as Topic[]
+            };
+
+            // Update course with updated module
+            const updatedModules = course.modules.map((mod: Module) => 
+                mod.id === moduleId ? updatedModule : mod
+            );
+
+            setCourse(courseId, {
+                modules: updatedModules
+            });
+        } finally {
+            setDeletingTopicId(null);
+            setPendingDeleteId(null);
+        }
+    };
+
+    const handleUpdateTopic = (topicId: number, updates: Partial<Topic>) => {
+        if (!moduleId || !courseId || !currentModule) return;
+
+        // Update module with updated topic
+        const updatedModule = {
+            ...currentModule,
+            topics: (currentModule.topics || []).map((t: Topic) => t.id === topicId ? { ...t, ...updates } : t) as Topic[] 
+        };
+
+        // Update course with updated module
+        const updatedModules = course.modules.map((mod: Module) => 
+            mod.id === moduleId ? updatedModule : mod
+        );
+
+        setCourse(courseId, {
+            modules: updatedModules
+        });
+    };
 
     return (
         <div className='w-full h-auto mx-auto'>
             <div className='w-full max-w-[870px] p-6 mx-auto flex flex-col items-center justify-center'>
-               <div className='flex items-start gap-4 w-full'>
-                <div className={`w-full flex items-start transition-all mb-[36px] duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
+               <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full'>
+                <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
                         {isEditing ? (
                             <input 
                                 type="text" 
@@ -237,7 +304,7 @@ const Page = () => {
                         value={moduleDuration}
                         onChange={e => {
                             const val = e.target.value;
-                            updateModuleDuration(moduleId, val === "" ? 0 : Number(val))
+                            updateModuleDurationInCourse(courseId, moduleId, val === "" ? 0 : Number(val))
                         }}
                         className='w-[60px] text-[14px] focus:outline-none text-[#020817] py-1 px-2 rounded-md border-[1px] bg-white border-gray-300 font-bold transition-all duration-300' />
                         <p className='text-[14px] md:text-[14px] text-[#020817] font-[500] mb-1'>min</p>
@@ -246,11 +313,11 @@ const Page = () => {
 
                     {/* display topic details */}
                 <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${activeTopic ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>
-                    {activeTopic ? (  
+                    {topics.length > 0 ? (
                     <div className='w-full flex flex-col gap-4'>
-                        {topics.map(topic => {
+                        {topics.map((topic: Topic) => {
                             const topicType = topicTypes.find(tt => tt.name.toLowerCase().includes(topic.type));
-                            const isActive = topic.id === activeTopicId;
+                            const isActive = topic.id === editingTopicId;
                             const isEditing = editingTopicId === topic.id;
 
                             return (
@@ -261,8 +328,8 @@ const Page = () => {
                                             <label className="block mb-1">Topic Title</label>
                                             <input
                                                 type="text"
-                                                value={topic.title}
-                                                onChange={e => updateTopic(moduleId, topic.id, { title: e.target.value })}
+                                                value={topic.title || ''}
+                                                onChange={e => handleUpdateTopic(topic.id, { title: e.target.value })}
                                                 className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
                                             />
                                             <label className="block text-sm font-medium mb-1">Content</label>
@@ -270,7 +337,7 @@ const Page = () => {
                                                 <textarea
                                                 placeholder='Enter text content...'
                                                     value={topic.content || ''}
-                                                    onChange={e => updateTopic(moduleId, topic.id, { content: e.target.value })}
+                                                    onChange={e => handleUpdateTopic(topic.id, { content: e.target.value })}
                                                     className="w-full h-[130px] text-[#212223] mb-2 border rounded px-2 py-1"
                                                     rows={3}
                                                 />
@@ -281,7 +348,7 @@ const Page = () => {
                                                         className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
                                                     >
                                                         {topic.imageUrl ? (
-                                                            <img src={topic.imageUrl} alt="Preview" className="max-h-28 object-contain" />
+                                                            <Image src={topic.imageUrl} width={100} height={100} alt="Preview" className="max-h-28 object-contain" />
                                                         ) : (
                                                             <>
                                                                 <span className="text-[6B7280] font-semibold mb-2">Image Upload</span>
@@ -299,7 +366,7 @@ const Page = () => {
                                                                 const file = e.target.files?.[0];
                                                                 if (file) {
                                                                     const url = URL.createObjectURL(file);
-                                                                    updateTopic(moduleId, topic.id, { imageUrl: url });
+                                                                    handleUpdateTopic(topic.id, { imageUrl: url });
                                                                 }
                                                             }}
                                                         />
@@ -326,7 +393,7 @@ const Page = () => {
                                                                     const file = e.target.files?.[0];
                                                                     if (file) {
                                                                         const url = URL.createObjectURL(file);
-                                                                        updateTopic(moduleId, topic.id, { videoUrl: url });
+                                                                        handleUpdateTopic(topic.id, { videoUrl: url });
                                                                     }
                                                                 }}
                                                             />
@@ -335,7 +402,7 @@ const Page = () => {
                                                             type="text"
                                                             placeholder="Or paste YouTube/Video URL"
                                                             value={topic.videoUrl && !topic.videoUrl.startsWith('blob:') ? topic.videoUrl : ''}
-                                                            onChange={e => updateTopic(moduleId, topic.id, { videoUrl: e.target.value })}
+                                                            onChange={e => handleUpdateTopic(topic.id, { videoUrl: e.target.value })}
                                                             className="w-full px-4 py-2 border border-gray-300 rounded-md text-[#212223] focus:outline-none"
                                                         />
                                                     </div>
@@ -351,8 +418,8 @@ const Page = () => {
                                                 </div>
                                             ) : topic.type === 'table' ? (
                                                 <TableEditor
-                                                    value={topic.tableData || [['Header 1', 'Header 2'], ['', '']]}
-                                                    onChange={data => updateTopic(moduleId, topic.id, { tableData: data })}
+                                                value={topic.tableData as string[][] || [['Header 1', 'Header 2'], ['', '']]}
+                                                onChange={data => handleUpdateTopic(topic.id, { tableData: data })}
                                                 />
                                             ) : null}
                                             <div className="flex gap-2">
@@ -360,7 +427,11 @@ const Page = () => {
                                                     className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black"
                                                     onClick={e => {
                                                         e.stopPropagation();
-                                                        setEditingTopicId(null)
+                                                        setEditingTopicId(null);
+                                                        // Remove topic ID from URL
+                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
+                                                        currentSearchParams.delete('topic');
+                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
                                                     }}
                                                 >
                                                     Cancel
@@ -370,6 +441,10 @@ const Page = () => {
                                                     onClick={e => {
                                                         e.stopPropagation();
                                                         setEditingTopicId(null);
+                                                        // Remove topic ID from URL
+                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
+                                                        currentSearchParams.delete('topic');
+                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
                                                     }}
                                                 >
                                                     Save Topic
@@ -379,13 +454,15 @@ const Page = () => {
                                     ) : (
                                         <div
                                             className="relative w-full flex px-4 py-8 items-center justify-between shadow-lg rounded-lg"
-                                            onClick={() => setActiveTopicId(topic.id)}
+                                            // onClick={() => setEditingTopicId(topic.id)}
+                                            onClick={() => openEditForm(topic)}
                                         >
                                             <div className='w-full flex items-center gap-4'>
                                                 <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='opacity-80'/>
                                                 <Image src={topicType?.icon || ''} alt={topicType?.name || ''} width={20} height={20} className='opacity-80'/>
                                                 <h3 className='text-[14px] font-[500] text-[#020817] opacity-80'>
-                                                    {topic.title}
+                                                    {/* {topic.title} */}
+                                                    {topic.title || ''}
                                                 </h3>
                                             </div>
                                             <div className='flex items-center justify-center gap-4 transition-all duration-300'>
@@ -395,9 +472,9 @@ const Page = () => {
                                                     width={16}
                                                     height={16}
                                                     className='opacity-60 cursor-pointer'
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        openEditForm(topic);
+                                                    onClick={(e)=>{
+                                                        openEditForm(topic)
+                                                        e.stopPropagation()
                                                     }}
                                                 />
                                                 <Image
@@ -433,14 +510,7 @@ const Page = () => {
                                                             disabled={deletingTopicId === topic.id}
                                                             onClick={async e => {
                                                                 e.stopPropagation();
-                                                                setDeletingTopicId(topic.id);
-                                                                try {
-                                                                    await new Promise(res => setTimeout(res, 400));
-                                                                    deleteTopic(moduleId, topic.id);
-                                                                } finally {
-                                                                    setDeletingTopicId(null);
-                                                                    setPendingDeleteId(null);
-                                                                }
+                                                                handleDeleteTopic(topic.id);
                                                             }}
                                                         >
                                                             {deletingTopicId === topic.id ? "Deleting..." : "Delete"}
@@ -483,7 +553,7 @@ const Page = () => {
                             onClick={() => handleTopicSelection(topic.id)}
                             className={`w-full py-[2px] flex items-center gap-3 hover:bg-[#f3f3f3] p-4 rounded-sm cursor-pointer transition-all duration-300`}
                         >
-                            {topics.some(t => t.type === topic.type && t.id === activeTopicId) && (
+                            {topics.some((t: Topic) => t.type === topic.type && t.id === editingTopicId) && (
                                 <Image src="/course/modules/selected.svg" alt={topic.name} width={12} height={12} className='opacity-50'/>
                             )}
                             <p className='cursor-pointer transition-all duration-300'>{topic.name}</p>
@@ -496,4 +566,4 @@ const Page = () => {
     )
 }
 
-export default Page
+export default ModulePage
