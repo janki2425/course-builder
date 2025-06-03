@@ -38,11 +38,7 @@ export default function RootLayout({
             <Toaster position="bottom-right"/>
             <AppSidebar/>
             <div
-              className={`transition-all duration-300 ${
-                isCollapsed
-                  ? 'ml-[60px] max-w-[calc(100vw-60px)]'
-                  : 'ml-[220px] max-w-[calc(100vw-220px)]'
-              }`}
+              
             >
               {children}
             </div>

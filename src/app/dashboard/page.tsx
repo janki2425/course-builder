@@ -68,7 +68,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-[1440px] bg-gray-100 mx-auto min-h-screen">
+    <div className="w-full bg-gray-100 mx-auto min-h-screen ml-[220px] max-w-[calc(100vw-220px)]">
       <div className="p-4 md:p-12 transition-all duration-300">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 transition-all duration-300">
           <h2 className="text-[24px] font-[600]">Courses</h2>
