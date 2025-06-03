@@ -109,7 +109,6 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
         // Update module with new topic
         const updatedModule = {
             ...currentModule,
-            // topics: [...(currentModule.topics || []), newTopic]
             topics: [...(currentModule.topics || []), newTopic] as Topic[]
         };
 
@@ -130,7 +129,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
 
     return (
         <div className='w-full h-auto mx-auto'>
-            <div className='w-full max-w-[870px] p-6 mx-auto flex flex-col items-center justify-center'>
+            <div className='w-full max-w-[870px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
                <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full'>
                 <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
                         {isEditing ? (
@@ -153,7 +152,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
                         )}
                     </div>
                     <div className='w-fit flex items-center gap-2 p-2'>
-                        <label htmlFor="time" className='text-[14px] md:text-[14px] text-[#020817] font-[500] mb-1'>Duration</label>
+                        <label htmlFor="time" className='text-[12px] md:text-[14px] text-[#020817] font-[500] mb-1'>Duration</label>
                         <input 
                         type="number" 
                         id="time"
@@ -165,8 +164,8 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
                             const val = e.target.value;
                             updateModuleDurationInCourse(courseId, moduleId, val === "" ? 0 : Number(val))
                         }}
-                        className='w-[60px] text-[14px] focus:outline-none text-[#020817] py-1 px-2 rounded-md border-[1px] bg-white border-gray-300 font-bold transition-all duration-300' />
-                        <p className='text-[14px] md:text-[14px] text-[#020817] font-[500] mb-1'>min</p>
+                        className='w-[60px] text-[12px] md:text-[14px] focus:outline-none text-[#020817] py-1 px-2 rounded-md border-[1px] bg-white border-gray-300 font-bold transition-all duration-300' />
+                        <p className='text-[12px] md:text-[14px] text-[#020817] font-[500] mb-1'>min</p>
                     </div>
                </div>
 
@@ -174,7 +173,6 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
                 <Content moduleId={moduleId} topicId={topicId}/>
             
                 <div className='w-full flex items-center justify-center rounded-lg border-dashed border-[2px] border-gray-200 mt-[24px]'>
-                    {/* i want to display a button with a plus icon and a text "Add New Topic" */}
                     <button 
                     onClick={() => setIsAddingTopic(true)}
                     className='w-full flex items-center justify-between text-[12px] md:text-[18px] border-none focus:outline-none text-[#020817] p-2 rounded-lg transition-all duration-300'>

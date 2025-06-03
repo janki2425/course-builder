@@ -119,7 +119,6 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
     const { isEditing, setIsEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
-    // const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
     const [isEditingTopicTitle, setIsEditingTopicTitle] = useState(false);
     const [topicTitle, setTopicTitle] = useState('');
     const [formTitle, setFormTitle] = useState('');
@@ -191,8 +190,8 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
     };
 
   return (
-    <div className='w-full max-w-[870px] p-6 mx-auto flex flex-col items-center justify-center'>
-      <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${activeTopic ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>
+    <div className='w-full max-w-[870px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
+      <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${topics.length > 0 ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>
                     {topics.length > 0 ? (
                     <div className='w-full flex flex-col gap-4'>
                         {topics.map((topic: Topic) => {
@@ -222,16 +221,24 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     rows={3}
                                                 />
                                             ) : topic.type === 'image' ? (
-                                                <div className="w-full h-[130px] flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg mb-4 relative bg-white">
+                                                <div className="w-full flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg mb-4 relative bg-white">
                                                     <label
                                                         htmlFor={`image-upload-${topic.id}`}
-                                                        className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
+                                                        className="flex flex-col items-center justify-center w-full h-full cursor-pointer p-4"
                                                     >
                                                         {topic.imageUrl ? (
-                                                            <Image src={topic.imageUrl} width={100} height={100} alt="Preview" className="max-h-28 object-contain" />
+                                                            <div className="relative w-full h-auto max-h-[250px] mb-4">
+                                                                <Image 
+                                                                    src={topic.imageUrl} 
+                                                                    alt="Preview" 
+                                                                    fill
+                                                                    className="object-cover rounded-lg"
+                                                                />
+                                                                
+                                                            </div>
                                                         ) : (
                                                             <>
-                                                                <span className="text-[6B7280] font-semibold mb-2">Image Upload</span>
+                                                                <span className="text-[#6B7280] font-semibold mb-2">Image Upload</span>
                                                                 <div className="px-4 py-2 bg-white border border-gray-300 rounded-md text-black font-medium hover:bg-[#f3f0fa] transition">
                                                                     Upload Image
                                                                 </div>
@@ -333,14 +340,13 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                         </div>
                                     ) : (
                                         <div
-                                            className="relative w-full flex px-4 py-8 items-center justify-between shadow-lg rounded-lg"
-                                            // onClick={() => setEditingTopicId(topic.id)}
+                                            className="relative w-full flex px-4 py-4 md:py-8 items-center justify-between shadow-lg rounded-lg"
                                             onClick={() => openEditForm(topic)}
                                         >
-                                            <div className='w-full flex items-center gap-4'>
-                                                <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='opacity-80'/>
-                                                <Image src={topicType?.icon || ''} alt={topicType?.name || ''} width={20} height={20} className='opacity-80'/>
-                                                <h3 className='text-[14px] font-[500] text-[#020817] opacity-80'>
+                                            <div className='w-full flex items-center gap-4 pr-2'>
+                                                <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
+                                                <Image src={topicType?.icon || ''} alt={topicType?.name || ''} width={20} height={20} className='w-[16px] h-[16px] md:w-[20px] md:h-[20px] opacity-80'/>
+                                                <h3 className='text-[12px] md:text-[14px] font-[500] text-[#020817] opacity-80 truncate'>
                                                     {/* {topic.title} */}
                                                     {topic.title || ''}
                                                 </h3>
@@ -351,7 +357,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     alt="edit"
                                                     width={16}
                                                     height={16}
-                                                    className='opacity-60 cursor-pointer'
+                                                    className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px]'
                                                     onClick={(e)=>{
                                                         openEditForm(topic)
                                                         e.stopPropagation()
@@ -362,7 +368,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     alt="delete"
                                                     width={16}
                                                     height={16}
-                                                    className='opacity-60 cursor-pointer'
+                                                    className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px]'
                                                     onClick={e => {
                                                         e.stopPropagation();
                                                         setPendingDeleteId(topic.id);
