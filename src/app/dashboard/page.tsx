@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [newCourseName, setNewCourseName] = React.useState('');
   const [newCourseType, setNewCourseType] = React.useState('');
   const [newCourseDescription, setNewCourseDescription] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleCreateCourseSubmit = (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission
@@ -78,14 +79,20 @@ export default function DashboardPage() {
           <h2 className="text-[24px] font-[600]">Courses</h2>
           <button 
           onClick={handleCreateCourse}
-          className="bg-blue-500 flex items-center gap-2 text-white px-4 py-2 rounded-sm">
+          className="bg-blue-500 flex items-center gap-2 text-white px-4 py-2 rounded-sm cursor-pointer">
             <Image src="course/modules/add.svg" alt="plus" width={14} height={14} className="invert"/>
             <span className="text-[12px] font-[500]"> Create Course</span>
           </button>
         </div>
         <div className="w-full border border-gray-300 mt-8 rounded-[2px] transition-all duration-300">
           <div className="w-full flex items-center justify-end border-b border-gray-300 p-2">
-            <input type="search" placeholder="Search by course name" className="w-full max-w-[270px] px-2 py-1 text-[12px] rounded-sm border border-gray-300 focus:outline-none" />
+            <input 
+              type="search" 
+              placeholder="Search by course name" 
+              className="w-full max-w-[270px] px-2 py-1 text-[12px] rounded-sm border border-gray-300 focus:outline-none" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           
             <div className="w-full overflow-x-auto transition-all duration-300">
@@ -100,7 +107,12 @@ export default function DashboardPage() {
                 </tr>
                 </thead>
                 <tbody className="w-full">
-                {Object.values(courses).reverse().map((course, idx) => (
+                {Object.values(courses)
+                    .reverse()
+                    .filter(course =>
+                        course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((course, idx) => (
                     <tr 
                       key={course.courseId}
                       className="cursor-pointer hover:bg-gray-200 transition-colors duration-150"
@@ -188,8 +200,8 @@ export default function DashboardPage() {
                       />
                   </div>
                   <div className='w-full flex justify-end gap-4'>
-                      <button type='button' onClick={handleCloseModal} className='bg-gray-300 text-[#020817] text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md transition-all duration-300'>Cancel</button>
-                      <button type='submit' className='bg-blue-500 text-white text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md transition-all duration-300'>Create</button>
+                      <button type='button' onClick={handleCloseModal} className='bg-gray-300 text-[#020817] text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Cancel</button>
+                      <button type='submit' className='bg-blue-500 text-white text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Create</button>
                   </div>
               </form>
              

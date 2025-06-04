@@ -61,7 +61,7 @@ const Navbar = () => {
     }
 
     const handleSave = () => {
-        let courseId = currentCourseId;
+        const courseId = currentCourseId;
         if (!courseId) {
             toast.error(<p className='text-[16px] font-[500]'>Cannot save. Please create a course first.</p>);
             return;
