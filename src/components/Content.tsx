@@ -90,7 +90,7 @@ type TableEditorProps = {
           <thead>
             <tr>
               {value[0].map((cell, idx) => (
-                <th key={idx} className="px-2 py-1">{cell}</th>
+                <th key={idx} className="px-2 py-1 border">{cell}</th>
               ))}
             </tr>
           </thead>
@@ -114,11 +114,18 @@ type TableEditorProps = {
         <button type="button" className="mr-2 px-2 py-1 border rounded" onClick={addRow}>Add Row</button>
         <button
           type="button"
-          className="px-2 py-1 border rounded"
+          className="px-2 py-1 mr-2 border rounded"
           onClick={addCol}
           disabled={value[0].length >= maxColumns}
         >
           Add Column
+          </button>
+          <button 
+            type="button" 
+            className="mr-2 px-2 py-1 border rounded text-red-400"
+            onClick={() => onChange([['Header 1', 'Header 2']])}
+          >
+            Clear Table
           </button>
       </div>
   );
@@ -151,12 +158,11 @@ const Content = ({
 
     
     const { setIsTopicEditing } = useModuleEditStore();
-    const { boxColor,setBoxColor } = useModuleEditStore();
     const [formTitle, setFormTitle] = useState('');
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
     const [formVideoUrl, setFormVideoUrl] = useState('');
-    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
+    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2']]);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
 
@@ -167,9 +173,9 @@ const Content = ({
         setFormContent(topic.content || '');
         setFormImageUrl(topic.imageUrl || '');
         setFormVideoUrl(topic.videoUrl || '');
-        setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
+        setFormTableData(topic.tableData || [['Header 1', 'Header 2']]);
         
-        setIsTopicEditing(true)
+        setIsTopicEditing(true) 
         // Update URL with topic ID
         const currentSearchParams = new URLSearchParams(searchParams.toString());
         currentSearchParams.set('topic', topic.id.toString());
@@ -230,8 +236,8 @@ const Content = ({
         router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
     };
 
-    const handleBoxColor = (color: string) => {
-        setBoxColor(color);
+    const handleBoxColor = (topic: Topic, color: string) => {
+        handleUpdateTopic(topic.id, { boxColor: color });
     };
 
   return (
@@ -279,7 +285,7 @@ const Content = ({
                                                         {boxColorList.map((colorObj,index)=>(
                                                             <div key={index}>
                                                                 <div 
-                                                                onClick={()=>handleBoxColor(colorObj.color)}
+                                                                onClick={()=>handleBoxColor(topic, colorObj.color)}
                                                                 className={`w-8 h-8 rounded-full cursor-pointer ${colorObj.color === 'blue' ? "bg-blue-600" : colorObj.color === 'green' ? 'bg-green-600' : 
                                                                 colorObj.color === 'yellow' ? "bg-yellow-600" : colorObj.color === 'red' ? 'bg-red-600' : ''} border-[1px] border-black`}></div>
                                                             </div>
@@ -312,12 +318,12 @@ const Content = ({
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <>
+                                                            <div className='py-4 flex flex-col items-center'>
                                                                 <span className="text-[#6B7280] font-semibold mb-2">Image Upload</span>
                                                                 <div className="px-4 py-2 bg-white border border-gray-300 rounded-md text-black font-medium hover:bg-[#f3f0fa] transition">
                                                                     Upload Image
                                                                 </div>
-                                                            </>
+                                                            </div>
                                                         )}
                                                         <input
                                                             id={`image-upload-${topic.id}`}
@@ -345,7 +351,7 @@ const Content = ({
                                                             <div className="w-[120px] px-4 py-2 bg-white border border-gray-300 rounded-md text-[14px] text-black font-[400] hover:bg-[#f3f0fa] transition leading-[120%]">
                                                                 Upload Video
                                                             </div>
-                                                            {/* <input
+                                                            <input
                                                                 id={`video-upload-${topic.id}`}
                                                                 type="file"
                                                                 accept="video/*"
@@ -357,14 +363,7 @@ const Content = ({
                                                                         handleUpdateTopic(topic.id, { videoUrl: url });
                                                                     }
                                                                 }}
-                                                            /> */}
-                                                            {topic.videoUrl?.includes('vimeo.com') ? (
-                                                                <Vimeo
-                                                                video={topic.videoUrl || 'Video not found'}
-                                                                responsive
-                                                                autoplay={false}
-                                                                />
-                                                                ):null}
+                                                            />
                                                         </label>
                                                         <input
                                                             type="text"
@@ -378,7 +377,7 @@ const Content = ({
                                                         <div className="w-full flex justify-center mt-2">
                                                             <span className="text-green-600 font-medium">
                                                                 {topic.videoUrl.startsWith('blob:')
-                                                                    ? 'Video uploaded'
+                                                                    ? 'Local video selected (temporary URL)'
                                                                     : topic.videoUrl}
                                                             </span>
                                                         </div>
@@ -386,13 +385,13 @@ const Content = ({
                                                 </div>
                                             ) : topic.type === 'table' ? (
                                                 <TableEditor
-                                                value={topic.tableData as string[][] || [['Header 1', 'Header 2'], ['', '']]}
+                                                value={topic.tableData as string[][] || [['Header 1', 'Header 2']]}
                                                 onChange={data => handleUpdateTopic(topic.id, { tableData: data })}
                                                 />
                                             ) : null}
                                             <div className="flex gap-2 justify-end">
                                                 <button
-                                                    className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black"
+                                                    className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black cursor-pointer"
                                                     onClick={e => {
                                                         e.stopPropagation();
                                                         handleSaveTopic(topic.id)
@@ -401,7 +400,7 @@ const Content = ({
                                                     Cancel
                                                 </button>
                                                 <button
-                                                    className="py-2 px-4 rounded-md bg-[#9b87f5] text-white text-[14px] font-[500]"
+                                                    className="py-2 px-4 rounded-md bg-[#9b87f5] text-white text-[14px] font-[500] cursor-pointer"
                                                     onClick={e => {
                                                         e.stopPropagation();
                                                         handleSaveTopic(topic.id)
@@ -415,37 +414,56 @@ const Content = ({
                                         <div className='relative w-full h-full'>
                                             <div className='w-full flex flex-row items-center justify-between gap-2 md:gap-4'>
                                                 {topic.type === 'text' ? (
-                                                    <div className='flex-grow bg-gray-50 rounded-sm'>
+                                                    <div className='flex-grow bg-gray-50 rounded-sm border border-gray-200'>
                                                         <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] p-2 md:p-4 transition-all duration-300'>
                                                             {topic.content || ''}
                                                         </div>
                                                     </div>
                                                 ) : topic.type === 'image' ? (
                                                     <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)] transition-all duration-300'> {/* Increased to 50px to account for icon space */}
-                                                        <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative">
-                                                            <Image 
-                                                                src={topic.imageUrl || ''} 
-                                                                alt="Preview" 
-                                                                width={0}
-                                                                height={0}
-                                                                sizes="100vw"
-                                                                className="w-full h-full object-cover rounded-sm"
-                                                            />
-                                                        </div>
+                                                        {topic.imageUrl ? (
+                                                            <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative">
+                                                                <Image 
+                                                                    src={topic.imageUrl} 
+                                                                    alt="Preview" 
+                                                                    width={0}
+                                                                    height={0}
+                                                                    sizes="100vw"
+                                                                    className="w-full h-full object-cover rounded-sm"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                                                No Image
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : topic.type === 'video' ? (
                                                     <div className='flex-grow'>
-                                                        <div className="w-full aspect-video py-2 transition-all duration-300">
-                                                            <Vimeo
-                                                                video={topic.videoUrl || 'video not found'}
-                                                                responsive
-                                                                autoplay={false}
-                                                                className='w-full h-full rounded-sm'
-                                                            />
-                                                        </div>
+                                                        {topic.videoUrl ? (
+                                                            <div className="w-full aspect-video py-2 transition-all duration-300">
+                                                                {topic.videoUrl.startsWith('blob:') ? (
+                                                                    <video controls className='w-full h-full rounded-sm'>
+                                                                        <source src={topic.videoUrl} type="video/mp4" /> {/* Assuming mp4 for local, adjust type if needed */}
+                                                                        Your browser does not support the video tag.
+                                                                    </video>
+                                                                ) : (
+                                                                    <Vimeo
+                                                                        video={topic.videoUrl || 'video not found'}
+                                                                        responsive
+                                                                        autoplay={false}
+                                                                        className='w-full h-full rounded-sm'
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                                                No video
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : topic.type === 'table' ? (
-                                                    <div className='flex-grow bg-gray-50 p-4 rounded-sm transition-all duration-300'>
+                                                    <div className='flex-grow bg-gray-50 p-4 rounded-sm transition-all duration-300 overflow-x-auto'>
                                                         <table className="w-full border">
                                                             <thead>
                                                                 <tr>
@@ -457,7 +475,7 @@ const Content = ({
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {topic.tableData?.slice(1)?.map((row, rIdx) => (
+                                                                {topic.tableData?.slice(1)?.filter(row => row.some(cell => cell !== ''))?.map((row, rIdx) => (
                                                                     <tr key={rIdx}>
                                                                         {row.map((cell, cIdx) => (
                                                                             <td key={cIdx} className="border px-2 py-1 text-[14px] md:text-[18px] text-gray-600 transition-all duration-300">
@@ -470,8 +488,8 @@ const Content = ({
                                                         </table>
                                                     </div>
                                                 ) : topic.type === 'information' ? (
-                                                    <div className={`flex-grow ${boxColor ? `bg-${boxColor}-600` : 'bg-gray-50'} rounded-sm`}>
-                                                        <div className={`w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500] p-4 ${boxColor ? 'text-white' : 'text-gray-700'} transition-all duration-300`}>
+                                                    <div className={`flex-grow ${topic.boxColor ? `bg-${topic.boxColor}-600` : 'bg-gray-50'} rounded-sm`}>
+                                                        <div className={`w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500] p-4 ${topic.boxColor ? 'text-white' : 'text-gray-700'} transition-all duration-300`}>
                                                             {topic.content || ''}
                                                         </div>
                                                     </div>

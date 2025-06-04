@@ -21,6 +21,7 @@ export type Topic = {
     tableData?: string[][];
     duration?: number;
     topics?: Topic[];
+    boxColor?: string;
 };
 
 export type Course = {

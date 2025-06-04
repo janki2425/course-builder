@@ -106,10 +106,10 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
             {mod.title}
           </span>
 
-          <div className="flex flex-col items-center justify-center gap-[1px] cursor-pointer"> {/* Also make topic count clickable */}
+          {/* <div className="flex flex-col items-center justify-center gap-[1px] cursor-pointer">
             <p className="text-[12px] lg:text-[14px] font-[500]">{topicCount}</p>
             <span className="text-[12px] lg:text-[14px] font-[500]">Topics</span>
-          </div>
+          </div> */}
 
           <div className={`flex items-center gap-1 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <button 

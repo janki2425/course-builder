@@ -93,7 +93,8 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
             content: '',
             imageUrl: '',
             videoUrl: '',
-            tableData: topicType.type === 'table' ? [['Header 1', 'Header 2'], ['', '']] : undefined
+            tableData: topicType.type === 'table' ? [['Header 1', 'Header 2']] : undefined,
+            boxColor: topicType.type === 'information' ? '' : undefined
         };
 
         // Update module with new topic
@@ -119,7 +120,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
         // Update URL with topic ID
         const currentSearchParams = new URLSearchParams(searchParams.toString());
         currentSearchParams.set('topic', newTopic.id.toString());
-        router.push(`${pathname}?${currentSearchParams.toString()}`);
+        router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
     };
 
 
