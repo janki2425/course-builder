@@ -25,6 +25,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
 
     
     const { isEditing, setIsEditing } = useModuleEditStore();
+    const { isTopicEditing, setIsTopicEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
@@ -35,7 +36,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
     const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
 
 
-    const topics = currentModule.topics || [];
+    const topics = currentModule?.topics || [];
 
     // Set initial input value when editing starts
     useEffect(() => {
@@ -86,6 +87,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
         // Create new topic
         const newTopic: Topic = {
             id: (currentModule.topics?.length || 0) + 1,
+            uniqueId: crypto.randomUUID(),
             title: `New ${topicType.name}`,
             type: topicType.type as TopicType,
             content: '',
@@ -109,15 +111,21 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
             modules: updatedModules
         });
 
-        // Open edit form for new topic
-        openEditForm(newTopic);
+        // Set editing state for new topic
+        setEditingTopicId(newTopic.id);
+        setIsTopicEditing(true);
         setIsAddingTopic(false);
+        
+        // Update URL with topic ID
+        const currentSearchParams = new URLSearchParams(searchParams.toString());
+        currentSearchParams.set('topic', newTopic.id.toString());
+        router.push(`${pathname}?${currentSearchParams.toString()}`);
     };
 
 
     return (
         <div className='w-full h-auto mx-auto'>
-            <div className='w-full max-w-[870px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
+            <div className='w-full max-w-[1280px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
                <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full'>
                 <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
                         {isEditing ? (
@@ -158,7 +166,13 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
                </div>
 
                     {/* display topic details */}
-                <Content moduleId={moduleId} topicId={topicId}/>
+                <Content 
+                    moduleId={moduleId} 
+                    topicId={topicId} 
+                    isTopicEditing={isTopicEditing}
+                    editingTopicId={editingTopicId}
+                    setEditingTopicId={setEditingTopicId}
+                />
             
                 <div className='w-full flex items-center justify-center rounded-lg border-dashed border-[2px] border-gray-200 mt-[24px]'>
                     <button 

@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic, TopicType , Module } from '@/utils/types';
+import { Topic , Module } from '@/utils/types';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
+import Vimeo from '@u-wave/react-vimeo';
 
 export const topicTypes = [
     {
@@ -42,17 +43,38 @@ export const topicTypes = [
         selected: false
     }
 ]
+
+const boxColorList=[
+    {
+        id:1,
+        color:'blue',
+    },
+    {
+        id:2,
+        color:'green',
+    },
+    {
+        id:3,
+        color:'yellow',
+    },
+    {
+        id:4,
+        color:'red',
+    },
+]
+
 type TableEditorProps = {
     value: string[][];
     onChange: (val: string[][]) => void;
-  };
+};
+
   const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
     const maxColumns = 10;
-    const addRow = () => onChange([...value, Array(value[0].length).fill('Cell content')]);
+    const addRow = () => onChange([...value, Array(value[0].length).fill('')]);
     const addCol = () => {
       if (value[0].length < maxColumns) {
         onChange(value.map((row, i) =>
-          [...row, i === 0 ? `Header ${row.length + 1}` : 'Cell content']
+          [...row, i === 0 ? `Header ${row.length + 1}` : '']
         ));
       }
     };
@@ -103,24 +125,33 @@ type TableEditorProps = {
 };
 
 
-const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | null }) => {
+const Content = ({ 
+    moduleId, 
+    topicId,
+    isTopicEditing,
+    editingTopicId,
+    setEditingTopicId
+}: { 
+    moduleId: string, 
+    topicId: string | null,
+    isTopicEditing: boolean,
+    editingTopicId: number | null,
+    setEditingTopicId: (id: number | null) => void
+}) => {
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const courseId = params.courseId as string;
-    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
+    const { courses, setCourse } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
-    const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
-    const topics = currentModule.topics || [];
+    const topics = currentModule?.topics || [];
     const activeTopic = topics.find((t: Topic) => t.id === editingTopicId);
 
-    const { isEditing, setIsEditing } = useModuleEditStore();
-    const [inputValue, setInputValue] = useState('');
-    const [isAddingTopic, setIsAddingTopic] = useState(false);
-    const [isEditingTopicTitle, setIsEditingTopicTitle] = useState(false);
-    const [topicTitle, setTopicTitle] = useState('');
+    
+    const { setIsTopicEditing } = useModuleEditStore();
+    const { boxColor,setBoxColor } = useModuleEditStore();
     const [formTitle, setFormTitle] = useState('');
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
@@ -138,10 +169,11 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
         setFormVideoUrl(topic.videoUrl || '');
         setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
         
+        setIsTopicEditing(true)
         // Update URL with topic ID
         const currentSearchParams = new URLSearchParams(searchParams.toString());
         currentSearchParams.set('topic', topic.id.toString());
-        router.push(`${pathname}?${currentSearchParams.toString()}`);
+        router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
     };
 
     const handleDeleteTopic = async (topicId: number) => {
@@ -189,22 +221,32 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
         });
     };
 
+    const handleSaveTopic = (topicId: number) => {
+        setIsTopicEditing(false);
+        setEditingTopicId(null);
+        // Remove topic ID from URL
+        const currentSearchParams = new URLSearchParams(searchParams.toString());
+        currentSearchParams.delete('topic');
+        router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
+    };
+
+    const handleBoxColor = (color: string) => {
+        setBoxColor(color);
+    };
+
   return (
-    <div className='w-full max-w-[870px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
+    <div className='w-full max-w-[1280px] md:p-6 mx-auto flex flex-col items-center justify-center'>
       <div className={`relative w-full min-h-[150px] h-fit flex items-center justify-center  gap-6 rounded-lg p-2 ${topics.length > 0 ? 'border-none shadow-none' : 'border-dashed border-2 border-gray-200'}`}>
                     {topics.length > 0 ? (
-                    <div className='w-full flex flex-col gap-4'>
+                    <div className='w-full flex flex-col gap-4 md:gap-8'>
                         {topics.map((topic: Topic) => {
-                            const topicType = topicTypes.find(tt => tt.name.toLowerCase().includes(topic.type));
-                            const isActive = topic.id === editingTopicId;
                             const isEditing = editingTopicId === topic.id;
-
                             return (
-                                <React.Fragment key={topic.id}>
+                                <React.Fragment key={topic.uniqueId}>
                                     {/* Render the form below the topic card */}
                                     {isEditing ? (
-                                        <div className="w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#8a8a8a]">
-                                            {topic.type === 'text' || topic.type === 'information' ? (
+                                        <div className={`w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#8a8a8a]`}>
+                                            {topic.type === 'text'  ? (
                                             <>
                                             <label className="block mb-1">Topic Title</label>
                                             <input
@@ -214,9 +256,37 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                 className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
                                             />
                                             <label className="block text-sm font-medium mb-1">Content</label>
+                                            <textarea
+                                                placeholder='Enter text content...'
+                                                    value={topic.content || ''}
+                                                    onChange={e => handleUpdateTopic(topic.id, { content: e.target.value })}
+                                                    className="w-full h-[130px] text-[#212223] mb-2 border rounded px-2 py-1"
+                                                    rows={3}
+                                                />
                                             </>
-                                            ):( "" )}
-                                            {topic.type === 'text' || topic.type === 'information' ? (
+                                            ):topic.type === 'information' ? ( 
+                                                <>
+                                                <label className="block mb-1">Topic Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={topic.title || ''}
+                                                    onChange={e => handleUpdateTopic(topic.id, { title: e.target.value })}
+                                                    className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
+                                                />
+                                                <div className='flex flex-col gap-1 mb-2'>
+                                                    <label className='text-[#212223]'>Box Color</label>
+                                                    <div className='flex gap-2'>
+                                                        {boxColorList.map((colorObj,index)=>(
+                                                            <div key={index}>
+                                                                <div 
+                                                                onClick={()=>handleBoxColor(colorObj.color)}
+                                                                className={`w-8 h-8 rounded-full cursor-pointer ${colorObj.color === 'blue' ? "bg-blue-600" : colorObj.color === 'green' ? 'bg-green-600' : 
+                                                                colorObj.color === 'yellow' ? "bg-yellow-600" : colorObj.color === 'red' ? 'bg-red-600' : ''} border-[1px] border-black`}></div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <label className="block text-sm font-medium mb-1">Content</label>
                                                 <textarea
                                                 placeholder='Enter text content...'
                                                     value={topic.content || ''}
@@ -224,21 +294,22 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     className="w-full h-[130px] text-[#212223] mb-2 border rounded px-2 py-1"
                                                     rows={3}
                                                 />
-                                            ) : topic.type === 'image' ? (
+                                                </>
+                                             ):("")}
+                                            {topic.type === 'image' ? (
                                                 <div className="w-full flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg mb-4 relative bg-white">
                                                     <label
                                                         htmlFor={`image-upload-${topic.id}`}
                                                         className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
                                                     >
                                                         {topic.imageUrl ? (
-                                                            <div className="relative w-full h-[200px]">
+                                                            <div className="w-full h-[150px] md:h-[300px] lg:h-[500px] py-2 transition-all duration-300">
                                                                 <Image 
                                                                     src={topic.imageUrl} 
                                                                     alt="Preview" 
                                                                     fill
                                                                     className="object-cover rounded-lg"
                                                                 />
-                                                                
                                                             </div>
                                                         ) : (
                                                             <>
@@ -267,7 +338,6 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                 <div className="w-full h-[130px] flex flex-col items-center justify-center border-dashed mb-4 border-2 border-gray-300 rounded-lg relative bg-white">
                                                     <p className='text-[16px] text-black font-[500] opacity-60 mb-4'>Video upload or URL</p>
                                                     <div className="flex w-full h-fit items-center justify-center gap-4 px-4">
-                                                    
                                                         <label
                                                             htmlFor={`video-upload-${topic.id}`}
                                                             className="flex flex-col items-center justify-center cursor-pointer"
@@ -275,7 +345,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                             <div className="w-[120px] px-4 py-2 bg-white border border-gray-300 rounded-md text-[14px] text-black font-[400] hover:bg-[#f3f0fa] transition leading-[120%]">
                                                                 Upload Video
                                                             </div>
-                                                            <input
+                                                            {/* <input
                                                                 id={`video-upload-${topic.id}`}
                                                                 type="file"
                                                                 accept="video/*"
@@ -287,7 +357,14 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                                         handleUpdateTopic(topic.id, { videoUrl: url });
                                                                     }
                                                                 }}
-                                                            />
+                                                            /> */}
+                                                            {topic.videoUrl?.includes('vimeo.com') ? (
+                                                                <Vimeo
+                                                                video={topic.videoUrl || 'Video not found'}
+                                                                responsive
+                                                                autoplay={false}
+                                                                />
+                                                                ):null}
                                                         </label>
                                                         <input
                                                             type="text"
@@ -318,11 +395,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black"
                                                     onClick={e => {
                                                         e.stopPropagation();
-                                                        setEditingTopicId(null);
-                                                        // Remove topic ID from URL
-                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
-                                                        currentSearchParams.delete('topic');
-                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
+                                                        handleSaveTopic(topic.id)
                                                     }}
                                                 >
                                                     Cancel
@@ -331,11 +404,7 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                                     className="py-2 px-4 rounded-md bg-[#9b87f5] text-white text-[14px] font-[500]"
                                                     onClick={e => {
                                                         e.stopPropagation();
-                                                        setEditingTopicId(null);
-                                                        // Remove topic ID from URL
-                                                        const currentSearchParams = new URLSearchParams(searchParams.toString());
-                                                        currentSearchParams.delete('topic');
-                                                        router.push(`${pathname}?${currentSearchParams.toString()}`);
+                                                        handleSaveTopic(topic.id)
                                                     }}
                                                 >
                                                     Save Topic
@@ -343,71 +412,125 @@ const Content = ({ moduleId, topicId }: { moduleId: string, topicId: string | nu
                                             </div>
                                         </div>
                                     ) : (
-                                        <div
-                                            className="relative w-full flex px-4 py-4 md:py-8 items-center justify-between shadow-lg rounded-lg"
-                                            onClick={() => openEditForm(topic)}
-                                        >
-                                            <div className='w-full flex items-center gap-4 pr-2'>
-                                                <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
-                                                <Image src={topicType?.icon || ''} alt={topicType?.name || ''} width={20} height={20} className='w-[16px] h-[16px] md:w-[20px] md:h-[20px] opacity-80'/>
-                                                <h3 className='text-[12px] md:text-[14px] font-[500] text-[#020817] opacity-80 truncate'>
-                                                    {/* {topic.title} */}
-                                                    {topic.title || ''}
-                                                </h3>
-                                            </div>
-                                            <div className='flex items-center justify-center gap-4 transition-all duration-300'>
-                                                <Image
-                                                    src="/sidebar/edit.svg"
-                                                    alt="edit"
-                                                    width={16}
-                                                    height={16}
-                                                    className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px]'
-                                                    onClick={(e)=>{
-                                                        openEditForm(topic)
-                                                        e.stopPropagation()
-                                                    }}
-                                                />
-                                                <Image
-                                                    src="/sidebar/delete.svg"
-                                                    alt="delete"
-                                                    width={16}
-                                                    height={16}
-                                                    className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px]'
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        setPendingDeleteId(topic.id);
-                                                    }}
-                                                />
-                                            </div>
-                                            {pendingDeleteId === topic.id && (
-                                                <div 
-                                                    className="absolute right-0 top-10 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col items-center min-w-[200px]"
-                                                    onClick={e => e.stopPropagation()}
-                                                >
-                                                    <span className="mb-2 text-sm text-gray-800">Delete this topic?</span>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            className="px-2 text-[12px] font-[500] py-1 rounded bg-gray-100 text-gray-800"
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                setPendingDeleteId(null);
-                                                            }}
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                        <button
-                                                            className="px-3 text-[12px] font-[500] py-1 rounded bg-red-500 text-white"
-                                                            disabled={deletingTopicId === topic.id}
-                                                            onClick={async e => {
-                                                                e.stopPropagation();
-                                                                handleDeleteTopic(topic.id);
-                                                            }}
-                                                        >
-                                                            {deletingTopicId === topic.id ? "Deleting..." : "Delete"}
-                                                        </button>
+                                        <div className='relative w-full h-full'>
+                                            <div className='w-full flex flex-row items-center justify-between gap-2 md:gap-4'>
+                                                {topic.type === 'text' ? (
+                                                    <div className='flex-grow bg-gray-50 rounded-sm'>
+                                                        <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] p-2 md:p-4 transition-all duration-300'>
+                                                            {topic.content || ''}
+                                                        </div>
                                                     </div>
+                                                ) : topic.type === 'image' ? (
+                                                    <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)] transition-all duration-300'> {/* Increased to 50px to account for icon space */}
+                                                        <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative">
+                                                            <Image 
+                                                                src={topic.imageUrl || ''} 
+                                                                alt="Preview" 
+                                                                width={0}
+                                                                height={0}
+                                                                sizes="100vw"
+                                                                className="w-full h-full object-cover rounded-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : topic.type === 'video' ? (
+                                                    <div className='flex-grow'>
+                                                        <div className="w-full aspect-video py-2 transition-all duration-300">
+                                                            <Vimeo
+                                                                video={topic.videoUrl || 'video not found'}
+                                                                responsive
+                                                                autoplay={false}
+                                                                className='w-full h-full rounded-sm'
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : topic.type === 'table' ? (
+                                                    <div className='flex-grow bg-gray-50 p-4 rounded-sm transition-all duration-300'>
+                                                        <table className="w-full border">
+                                                            <thead>
+                                                                <tr>
+                                                                    {topic.tableData?.[0]?.map((cell, idx) => (
+                                                                        <th key={idx} className="px-2 py-1 border border-gray-300 text-center text-[14px] md:text-[18px] font-semibold text-gray-700 transition-all duration-300">
+                                                                            {cell}
+                                                                        </th>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {topic.tableData?.slice(1)?.map((row, rIdx) => (
+                                                                    <tr key={rIdx}>
+                                                                        {row.map((cell, cIdx) => (
+                                                                            <td key={cIdx} className="border px-2 py-1 text-[14px] md:text-[18px] text-gray-600 transition-all duration-300">
+                                                                                {cell}
+                                                                            </td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                ) : topic.type === 'information' ? (
+                                                    <div className={`flex-grow ${boxColor ? `bg-${boxColor}-600` : 'bg-gray-50'} rounded-sm`}>
+                                                        <div className={`w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500] p-4 ${boxColor ? 'text-white' : 'text-gray-700'} transition-all duration-300`}>
+                                                            {topic.content || ''}
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                                <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'> {/* Increased width */}
+                                                    <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
+                                                    <Image
+                                                        src="/sidebar/edit.svg"
+                                                        alt="edit"
+                                                        width={16}
+                                                        height={16}
+                                                        className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px] transition-all duration-300'
+                                                        onClick={(e) => {
+                                                            openEditForm(topic);
+                                                            e.stopPropagation();
+                                                        }}
+                                                    />
+                                                    <Image
+                                                        src="/sidebar/delete.svg"
+                                                        alt="delete"
+                                                        width={16}
+                                                        height={16}
+                                                        className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px] transition-all duration-300'
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            setPendingDeleteId(topic.id);
+                                                        }}
+                                                    />
                                                 </div>
-                                            )}
+                                                {pendingDeleteId === topic.id && (
+                                                    <div 
+                                                        className="absolute right-0 top-1/2 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 md:p-4 flex flex-col items-center min-w-[100px] md:min-w-[200px] transition-all duration-300"
+                                                        onClick={e => e.stopPropagation()}
+                                                    >
+                                                        <span className="mb-2 text-[12px] md:text-[14px] text-gray-800">Delete this topic?</span>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                className="px-2 text-[10px] md:text-[12px] font-[500] py-1 rounded bg-gray-100 text-gray-800 transition-all duration-300"
+                                                                onClick={e => {
+                                                                    e.stopPropagation();
+                                                                    setPendingDeleteId(null);
+                                                                }}
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                className="px-3 text-[10px] md:text-[12px] font-[500] py-1 rounded bg-red-500 text-white transition-all duration-300"
+                                                                disabled={deletingTopicId === topic.id}
+                                                                onClick={async e => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteTopic(topic.id);
+                                                                }}
+                                                            >
+                                                                {deletingTopicId === topic.id ? "Deleting..." : "Delete"}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </React.Fragment>
