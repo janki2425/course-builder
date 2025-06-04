@@ -213,8 +213,8 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <Image src={isCollapsed ? "/sidebar/down-arrow.svg" : "/sidebar/up-arrow.svg"} alt="Menu" width={20} height={20} className="hidden md:block"/>
-      {!isCollapsed && <span className="hidden md:block text-black text-[16px]">Collapse Sidebar</span>}
+      {/* <Image src={isCollapsed ? "/sidebar/down-arrow.svg" : "/sidebar/up-arrow.svg"} alt="Menu" width={20} height={20} className="hidden md:block"/>
+      {!isCollapsed && <span className="hidden md:block text-black text-[16px]">Collapse Sidebar</span>} */}
     </Button>
   )
 }

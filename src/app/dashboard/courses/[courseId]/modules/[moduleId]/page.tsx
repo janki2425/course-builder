@@ -24,30 +24,15 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
     const moduleDuration = currentModule?.duration;
 
     
-
-    // Handle case where course or module is not found
-    if (!course) {
-        return <div className='w-full h-full flex items-center justify-center'>Course not found</div>;
-    }
-
-    if (!currentModule) {
-        return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
-    }
-
     const { isEditing, setIsEditing } = useModuleEditStore();
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
-    // const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
-    const [isEditingTopicTitle, setIsEditingTopicTitle] = useState(false);
-    const [topicTitle, setTopicTitle] = useState('');
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
     const [formTitle, setFormTitle] = useState('');
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
     const [formVideoUrl, setFormVideoUrl] = useState('');
     const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
-    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
-    const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
 
 
     const topics = currentModule.topics || [];
@@ -59,13 +44,16 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
         }
     }, [isEditing, moduleTitle]);
 
-    // useEffect(() => {
-    //     if (selectedTopic) {
-    //         const topicName = topicTypes.find(topic => topic.id === selectedTopic)?.name || '';
-    //         setTopicTitle(`New ${topicName}`);
-    //         setIsEditingTopicTitle(false);
-    //     }
-    // }, [selectedTopic]);
+     // Handle case where course or module is not found
+     if (!course) {
+        return <div className='w-full h-full flex items-center justify-center'>Course not found</div>;
+    }
+
+    if (!currentModule) {
+        return <div className='w-full h-full flex items-center justify-center'>Module not found</div>;
+    }
+
+
 
     const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
