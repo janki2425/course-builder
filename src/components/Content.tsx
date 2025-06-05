@@ -236,8 +236,14 @@ const Content = ({
         router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
     };
 
-    const handleBoxColor = (topic: Topic, color: string) => {
-        handleUpdateTopic(topic.id, { boxColor: color });
+    const handleBoxColor = (topic: Topic, color: string ) => {
+        const colorList = {
+            blue: ['#223C53', '#89B4DD', '#1d316a','blue'],
+            red: ['#532227', '#DD898C', '#6A1D22' ,'red'],
+            green: ['#245322', '#89DD8F', '#1D6A1D','green'],
+            yellow: ['#505322', '#DBDD89', '#6A691D','yellow']
+        };
+        handleUpdateTopic(topic.id, { boxColor: colorList[color as keyof typeof colorList] });
     };
 
   return (
@@ -251,7 +257,7 @@ const Content = ({
                                 <React.Fragment key={topic.uniqueId}>
                                     {/* Render the form below the topic card */}
                                     {isEditing ? (
-                                        <div className={`w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#8a8a8a]`}>
+                                        <div className={`w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
                                             {topic.type === 'text'  ? (
                                             <>
                                             <label className="block mb-1">Topic Title</label>
@@ -414,7 +420,7 @@ const Content = ({
                                         <div className='relative w-full h-full'>
                                             <div className='w-full flex flex-row items-center justify-between gap-2 md:gap-4'>
                                                 {topic.type === 'text' ? (
-                                                    <div className='flex-grow bg-gray-50 rounded-sm border border-gray-200'>
+                                                    <div className='flex-grow rounded-sm'>
                                                         <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] p-2 md:p-4 transition-all duration-300'>
                                                             {topic.content || ''}
                                                         </div>
@@ -463,7 +469,7 @@ const Content = ({
                                                         )}
                                                     </div>
                                                 ) : topic.type === 'table' ? (
-                                                    <div className='flex-grow bg-gray-50 p-4 rounded-sm transition-all duration-300 overflow-x-auto'>
+                                                    <div className='flex-grow transition-all duration-300 overflow-x-auto'>
                                                         <table className="w-full border">
                                                             <thead>
                                                                 <tr>
@@ -488,9 +494,34 @@ const Content = ({
                                                         </table>
                                                     </div>
                                                 ) : topic.type === 'information' ? (
-                                                    <div className={`flex-grow ${topic.boxColor ? `bg-${topic.boxColor}-600` : 'bg-gray-50'} rounded-sm`}>
-                                                        <div className={`w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500] p-4 ${topic.boxColor ? 'text-white' : 'text-gray-700'} transition-all duration-300`}>
-                                                            {topic.content || ''}
+                                                    <div 
+                                                        className="flex-grow rounded-sm"
+                                                        style={{
+                                                            backgroundColor: topic.boxColor ? topic.boxColor[1] : '#f9fafb',
+                                                            border: topic.boxColor ? `1px solid ${topic.boxColor[0]}` : 'none'
+                                                        }}
+                                                    >
+                                                        <div className="flex flex-col items-start gap-2 p-4">
+                                                            <div className='flex items-start md:items-center gap-2 transition-all duration-300'>
+                                                                <Image 
+                                                                    src={`/course/modules/topics/info-${topic.boxColor?.[3]}.svg`} 
+                                                                    width={24} 
+                                                                    height={24} 
+                                                                    alt='info'
+                                                                    className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
+                                                                />
+                                                                <h3 className=' text-[15px] md:text-[18px] font-[500] leading-4 transition-all duration-300' style={{
+                                                                        color: topic.boxColor ? topic.boxColor[2] : '#374151'
+                                                                    }}>{topic.title}</h3>
+                                                            </div>
+                                                            <div 
+                                                                className="w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500] transition-all duration-300"
+                                                                style={{
+                                                                    color: topic.boxColor ? topic.boxColor[2] : '#374151'
+                                                                }}
+                                                            >
+                                                                {topic.content || ''}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ) : null}
