@@ -361,8 +361,11 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                     onChange={e => {
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                            const url = URL.createObjectURL(file);
-                                            setFormImageUrl(url);
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setFormImageUrl(reader.result as string);
+                                            };
+                                            reader.readAsDataURL(file);
                                         }
                                     }}
                                     onClick={e => e.stopPropagation()}
