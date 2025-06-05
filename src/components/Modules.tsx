@@ -15,6 +15,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from 'next/navigation'
 import { Module } from '@/utils/types';
@@ -230,7 +231,7 @@ const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeMo
   if (isCollapsed) {
     return (
       <div className="flex flex-col gap-2 items-center justify-center mt-4">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
           <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
             {modules.map((mod) => (
               <SortableItemCollapsed key={mod.id} mod={mod} onClick={handleModuleClick} />
@@ -248,7 +249,7 @@ const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeMo
           <p className="text-[14px] text-gray-500">No modules yet. Click "Add Module" to get started.</p>
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
           <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-2 items-center justify-center mt-4">
               {modules.map((mod) => (

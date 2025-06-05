@@ -125,3 +125,8 @@
     overflow-x: hidden;
   }
 }
+
+.dragging-topic {
+  height: inherit !important;
+  min-height: inherit !important;
+}
