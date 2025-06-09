@@ -7,9 +7,9 @@ import CreateFirstModule from '@/components/CreateFirstModule';
 import ModulePage from './modules/[moduleId]/page';
 
 const CourseDetailsPage = () => {
-  const param = useParams();
+  const params = useParams();
   const searchParams = useSearchParams();
-  const courseId = param.courseId as string;
+  const courseId = params.courseId as string;
   const moduleId = searchParams.get('module');
   const topicId = searchParams.get('topic');
 
@@ -31,7 +31,7 @@ const CourseDetailsPage = () => {
     <div className='flex'>
       <AppSidebar courseId={courseId}/>
       {moduleId ? (
-        <ModulePage params={{ moduleId: moduleId ?? '', topicId: topicId ?? '' }} />
+        <ModulePage />
       ) : (
         <CreateFirstModule courseId={courseId}/>
       )}
