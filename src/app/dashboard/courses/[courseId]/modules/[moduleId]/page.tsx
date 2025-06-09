@@ -9,14 +9,14 @@ import { Module } from '@/utils/types';
 import Content from '@/components/Content';
 import { topicTypes } from '@/components/Content';
 
-
-
-const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }) => {
+const ModulePage = () => {
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const courseId = params.courseId as string;
+    const moduleId = searchParams.get('module') || '';
+    const topicId = searchParams.get('topic');
     const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
@@ -62,7 +62,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }
 
     const handleSave = () => {
         if (inputValue.trim() && moduleId && courseId) {
-            updateModuleTitleInCourse(courseId, moduleId, inputValue);
+            updateModuleTitleInCourse(courseId, moduleId as string, inputValue);
         }
         setIsEditing(false);
     }
@@ -105,7 +105,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }
 
         // Update course with updated module
         const updatedModules = course?.modules.map((mod: Module) => 
-            mod.id === moduleId ? updatedModule : mod
+            mod.id === (moduleId as string) ? updatedModule : mod
         );
 
         setCourse(courseId, {
@@ -167,13 +167,15 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }
                </div>
 
                     {/* display topic details */}
-                <Content 
-                    moduleId={moduleId} 
-                    topicId={topicId} 
-                    isTopicEditing={isTopicEditing}
-                    editingTopicId={editingTopicId}
-                    setEditingTopicId={setEditingTopicId}
-                />
+                    {moduleId && (
+                        <Content 
+                            moduleId={moduleId} 
+                            topicId={topicId} 
+                            isTopicEditing={isTopicEditing}
+                            editingTopicId={editingTopicId}
+                            setEditingTopicId={setEditingTopicId}
+                        />
+                    )}
             
                 <div className='w-full flex items-center justify-center rounded-lg border-dashed border-[2px] border-gray-200 mt-[24px]'>
                     <button 

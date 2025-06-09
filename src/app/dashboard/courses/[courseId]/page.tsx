@@ -31,7 +31,7 @@ const CourseDetailsPage = () => {
     <div className='flex'>
       <AppSidebar courseId={courseId}/>
       {moduleId ? (
-        <ModulePage moduleId={moduleId ?? ''} topicId={topicId ?? ''} />
+        <ModulePage />
       ) : (
         <CreateFirstModule courseId={courseId}/>
       )}
