@@ -89,8 +89,8 @@ interface SortableTopicProps {
     setEditingTopicId: (id: number | null) => void;
     handleUpdateTopic: (topicId: number, updates: Partial<Topic>) => void;
     handleDeleteTopic: (topicId: number) => Promise<void>;
-    pendingDeleteId: number | null;
-    setPendingDeleteId: (id: number | null) => void;
+    deleteId: number | null;
+    setDeleteId: (id: number | null) => void;
     deletingTopicId: number | null;
     handleBoxColor: (topic: Topic, color: string) => void;
     formTitle: string;
@@ -111,8 +111,8 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
     isEditing,
     setEditingTopicId,
     handleDeleteTopic,
-    pendingDeleteId,
-    setPendingDeleteId,
+    deleteId,
+    setDeleteId,
     deletingTopicId,
     handleBoxColor,
     formTitle,
@@ -455,31 +455,21 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                         <div
                             className="w-full rounded-sm"
                             style={{
-                                backgroundColor: topic.boxColor ? topic.boxColor[1] : '#f9fafb',
+                                backgroundColor: topic.boxColor ? topic.boxColor[1] : '#89B4DD',
                                 border: topic.boxColor ? `1px solid ${topic.boxColor[0]}` : 'none',
                             }}
                         >
                             <div className="flex flex-col items-start gap-2 p-4">
                                 <div className='flex items-start md:items-center gap-2 transition-all duration-300'>
-                                    {topic.boxColor ? (
-                                        <Image
-                                        src={`/course/modules/topics/info-${topic.boxColor?.[3]}.svg`}
+                                    <Image
+                                        src={`/course/modules/topics/info-${topic.boxColor?.[3] || 'blue'}.svg`}
                                         width={24}
                                         height={24}
                                         alt='info'
                                         className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
                                     />
-                                    ):(
-                                        <Image
-                                        src={`/course/modules/topics/info-blue.svg`}
-                                        width={24}
-                                        height={24}
-                                        alt='info'
-                                        className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
-                                    />
-                                    )}
-                                    <h3 className=' text-[15px] md:text-[18px] font-[500] leading-4 transition-all duration-300' style={{
-                                        color: topic.boxColor ? topic.boxColor[2] : '#374151'
+                                    <h3 className='text-[15px] md:text-[18px] font-[500] leading-4 transition-all duration-300' style={{
+                                        color: topic.boxColor ? topic.boxColor[2] : '#1d316a'
                                     }}>{topic.title}</h3>
                                 </div>
                                 <div
@@ -516,11 +506,11 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                             className='opacity-60 cursor-pointer w-[14px] h-[14px] md:w-[16px] md:h-[16px] transition-all duration-300'
                             onClick={e => {
                                 e.stopPropagation();
-                                setPendingDeleteId(topic.id);
+                                setDeleteId(topic.id);
                             }}
                         />
                     </div>
-                    {pendingDeleteId === topic.id && (
+                    {deleteId === topic.id && (
                         <div
                             className="absolute right-0 top-1/2 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 md:p-4 flex flex-col items-center min-w-[100px] md:min-w-[200px] transition-all duration-300"
                             onClick={e => e.stopPropagation()}
@@ -531,7 +521,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                     className="px-2 text-[10px] md:text-[12px] font-[500] py-1 rounded bg-gray-100 text-gray-800 transition-all duration-300"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setPendingDeleteId(null);
+                                        setDeleteId(null);
                                     }}
                                 >
                                     Cancel
@@ -587,7 +577,7 @@ const Content = ({
     const [formImageUrl, setFormImageUrl] = useState('');
     const [formVideoUrl, setFormVideoUrl] = useState('');
     const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2']]);
-    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
     const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
 
@@ -657,7 +647,6 @@ const Content = ({
         if (!moduleId || !courseId || !currentModule) return;
         setDeletingTopicId(topicId);
         try {
-            await new Promise(res => setTimeout(res, 400));
             
             const updatedModule = {
                 ...currentModule,
@@ -682,7 +671,7 @@ const Content = ({
 
         } finally {
             setDeletingTopicId(null);
-            setPendingDeleteId(null);
+            setDeleteId(null);
         }
     };
 
@@ -737,8 +726,12 @@ const Content = ({
             green: ['#245322', '#89DD8F', '#1D6A1D','green'],
             yellow: ['#505322', '#DBDD89', '#6A691D','yellow']
         };
-        handleUpdateTopic(topic.id, { boxColor: colorList[color as keyof typeof colorList] });
+        const defaultBoxColor = ['#223C53', '#89B4DD', '#1d316a','blue'];
+        // Always set a color - either the selected one or default
+        const boxColor = color ? colorList[color as keyof typeof colorList] : defaultBoxColor;
+        handleUpdateTopic(topic.id, { boxColor });
     };
+    
 
     return (
         <div className='w-full max-w-[1280px] md:p-6 mx-auto flex flex-col items-center justify-center'>
@@ -762,8 +755,8 @@ const Content = ({
                                         setEditingTopicId={setEditingTopicId}
                                         handleUpdateTopic={handleUpdateTopic}
                                         handleDeleteTopic={handleDeleteTopic}
-                                        pendingDeleteId={pendingDeleteId}
-                                        setPendingDeleteId={setPendingDeleteId}
+                                        deleteId={deleteId}
+                                        setDeleteId={setDeleteId}
                                         deletingTopicId={deletingTopicId}
                                         handleBoxColor={handleBoxColor}
                                         formTitle={formTitle}
@@ -784,7 +777,7 @@ const Content = ({
                         <DragOverlay>
                             {draggedTopic ? (
                                 <div
-                                    className="w-full flex flex-row items-center justify-between gap-2 md:gap-4 py-2 rounded-md"
+                                    className={`w-full flex flex-row items-center justify-between gap-2 md:gap-4 py-2 rounded-md`}
                                     style={{
                                         opacity: 0.8,
                                         boxShadow: '0px 5px 10px rgba(0, 0, 0, 0.1)',
@@ -869,31 +862,21 @@ const Content = ({
                                         <div
                                             className="w-full rounded-sm"
                                             style={{
-                                                backgroundColor: draggedTopic.boxColor ? draggedTopic.boxColor[1] : '#f9fafb',
+                                                backgroundColor: draggedTopic.boxColor ? draggedTopic.boxColor[1] : '#89B4DD',
                                                 border: draggedTopic.boxColor ? `1px solid ${draggedTopic.boxColor[0]}` : 'none',
                                             }}
                                         >
                                             <div className="flex flex-col items-start gap-2 p-4">
                                                 <div className='flex items-start md:items-center gap-2 transition-all duration-300'>
-                                                    {draggedTopic.boxColor ? (
-                                                        <Image
-                                                            src={`/course/modules/topics/info-${draggedTopic.boxColor?.[3]}.svg`}
-                                                            width={24}
-                                                            height={24}
-                                                            alt='info'
-                                                            className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
-                                                        />
-                                                    ):(
-                                                        <Image
-                                                            src={`/course/modules/topics/info-blue.svg`}
-                                                            width={24}
-                                                            height={24}
-                                                            alt='info'
-                                                            className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
-                                                        />
-                                                    )}
-                                                    <h3 className=' text-[15px] md:text-[18px] font-[500] leading-4 transition-all duration-300' style={{
-                                                        color: draggedTopic.boxColor ? draggedTopic.boxColor[2] : '#374151'
+                                                    <Image
+                                                        src={`/course/modules/topics/info-${draggedTopic.boxColor?.[3] || 'blue'}.svg`}
+                                                        width={24}
+                                                        height={24}
+                                                        alt='info'
+                                                        className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
+                                                    />
+                                                    <h3 className='text-[15px] md:text-[18px] font-[500] leading-4 transition-all duration-300' style={{
+                                                        color: draggedTopic.boxColor ? draggedTopic.boxColor[2] : '#1d316a'
                                                     }}>{draggedTopic.title}</h3>
                                                 </div>
                                                 <div

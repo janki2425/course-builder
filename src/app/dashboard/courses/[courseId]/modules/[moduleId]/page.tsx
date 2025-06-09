@@ -80,19 +80,7 @@ const ModulePage = () => {
         }
         setIsEditing(false);
     }
-    const openEditForm = (topic: Topic) => {
-        setEditingTopicId(topic.id);
-        setFormTitle(topic.title);
-        setFormContent(topic.content || '');
-        setFormImageUrl(topic.imageUrl || '');
-        setFormVideoUrl(topic.videoUrl || '');
-        setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
-        
-        // Update URL with topic ID
-        const currentSearchParams = new URLSearchParams(searchParams.toString());
-        currentSearchParams.set('topic', topic.id.toString());
-        router.push(`${pathname}?${currentSearchParams.toString()}`);
-    };
+    
 
     const handleTopicSelection = (topicTypeId: number) => {
         const topicType = topicTypes.find(t => t.id === topicTypeId);
@@ -108,7 +96,7 @@ const ModulePage = () => {
             imageUrl: '',
             videoUrl: '',
             tableData: topicType.type === 'table' ? [['Header 1', 'Header 2']] : undefined,
-            boxColor: topicType.type === 'information' ? [] : undefined
+            boxColor: topicType.type === 'information' ? ['#223C53', '#89B4DD', '#1d316a','blue'] : undefined
         };
 
         // Update module with new topic
