@@ -23,13 +23,11 @@ import { useNavbarStore } from '@/app/store/navbarStore';
 
 const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()
-  const { setIsEditing } = useModuleEditStore();
   const { setSelectedModule } = useNavbarStore();
   const [isEditing, setIsEditingLocal] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(mod.title);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const topicCount = getModuleTopicCount(mod.id);
 
   const handleModuleClick = (id: string) => {
     if (!isEditing) {
@@ -38,7 +36,6 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
         // Set the selected module in the store
         setSelectedModule(id);
       } else {
-        // This case should not happen if we are always in a course context
         alert('Module navigation error: No course ID')
       }
     }
@@ -70,7 +67,7 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
       onClick={() => handleModuleClick(mod.id)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`w-full max-w-[200px] flex items-center justify-between cursor-pointer border-[1px] border-[#E5E7EB] shadow-sm rounded-lg p-2 active:bg-[#eff6ff] ${isEditing ? 'bg-white' : ''}`}
+      className={`w-full max-w-[200px] flex items-center justify-between cursor-pointer border-[1px] border-[#E5E7EB] shadow-sm rounded-lg p-2 ${isEditing ? 'bg-white' : ''}`}
     >
       {!isEditing && (
         <div
@@ -87,7 +84,7 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
           type="text" 
           value={inputValue}
           onChange={handleTitle}
-          onClick={(e) => e.stopPropagation()} // Prevent input click from triggering parent handlers
+          onClick={(e) => e.stopPropagation()}
           onBlur={handleSave}
           onKeyDown={(e) => { 
             if (e.key === 'Enter') {
@@ -107,16 +104,11 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
             {mod.title}
           </span>
 
-          {/* <div className="flex flex-col items-center justify-center gap-[1px] cursor-pointer">
-            <p className="text-[12px] lg:text-[14px] font-[500]">{topicCount}</p>
-            <span className="text-[12px] lg:text-[14px] font-[500]">Topics</span>
-          </div> */}
-
           <div className={`flex items-center gap-1 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <button 
               type="button" 
               onClick={(e) => {
-                e.stopPropagation(); // Prevent button click from triggering parent handlers
+                e.stopPropagation();
                 setIsEditingLocal(true);
               }}
               className="w-[22px] h-[22px] cursor-pointer"
@@ -128,7 +120,7 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
               type="button"
               className="w-[22px] h-[22px] cursor-pointer"
               onClick={(e) => {
-                e.stopPropagation(); // Prevent button click from triggering parent handlers
+                e.stopPropagation();
                 onRemove(courseId, mod.id);
               }}
             >
@@ -142,7 +134,6 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
 };
 
 const SortableItemCollapsed = ({ mod, onClick }: { mod: Module, onClick: (moduleId: string) => void }) => {
-  const router = useRouter()
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: mod.id });
 
@@ -181,28 +172,23 @@ const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeMo
   const { setIsEditing } = useModuleEditStore();
   const { setSelectedModule } = useNavbarStore();
 
-  console.log('Modules component modules:', modules);
 
   const handleRemoveModule = (courseId: string | undefined, moduleId: string) => {
     if (courseId) {
       console.log("Removing module", moduleId);
       removeModule(courseId, moduleId);
     } else {
-      // This case should not happen if we are always in a course context
       alert('Module removal error: No course ID')
     }
-    // We no longer need to remove from global topics store
-    // useTopicsStore.getState().removeModuleTopics(moduleId);
+    
   };
 
   const handleModuleClick = (id: string) => {
     if (!setIsEditing) {
       if (courseId) {
         router.push(`/dashboard/courses/${courseId}?module=${id}`);
-        // Set the selected module in the store
         setSelectedModule(id);
       } else {
-        // This case should not happen if we are always in a course context
         alert('Module navigation error: No course ID')
       }
     }
@@ -222,7 +208,6 @@ const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeMo
       if (courseId) {
         reorderModules(courseId, newOrderedModules);
       } else {
-        // This case should not happen if we are always in a course context
         alert('Module reordering error: No course ID')
       }
     }

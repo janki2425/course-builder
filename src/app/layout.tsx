@@ -37,11 +37,7 @@ export default function RootLayout({
             
             <Toaster position="bottom-right"/>
             <AppSidebar/>
-            <div
-              
-            >
-              {children}
-            </div>
+            {children}
           </SidebarInset>
         </SidebarProvider> 
       </body>

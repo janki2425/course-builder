@@ -19,15 +19,13 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleCreateCourseSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
-    // Basic validation
     if (!newCourseName.trim()) {
       toast.error('Please enter a course name.');
       return;
     }
 
-    // Generate a unique course ID (similar to handleSave logic)
     let courseId = 0;
     for (let i = 1; i <= 1000; i++) {
       if (courses[i] === undefined) {
@@ -52,7 +50,6 @@ export default function DashboardPage() {
 
     saveCourse(newCourse);
 
-    // Reset form and close modal
     setNewCourseName('');
     setNewCourseType('');
     setNewCourseDescription('');
@@ -79,7 +76,7 @@ export default function DashboardPage() {
           <h2 className="text-[24px] font-[600]">Courses</h2>
           <button 
           onClick={handleCreateCourse}
-          className="bg-blue-500 flex items-center gap-2 text-white px-4 py-2 rounded-sm cursor-pointer">
+          className="bg-blue-500 hover:bg-blue-600 flex items-center gap-2 text-white px-4 py-2 rounded-sm cursor-pointer">
             <Image src="course/modules/add.svg" alt="plus" width={14} height={14} className="invert"/>
             <span className="text-[12px] font-[500]"> Create Course</span>
           </button>
@@ -132,7 +129,7 @@ export default function DashboardPage() {
                           height={14} 
                           className="cursor-pointer"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent row click
+                            e.stopPropagation();
                             deleteCourse(course.courseId);
                           }}
                         />
@@ -200,8 +197,8 @@ export default function DashboardPage() {
                       />
                   </div>
                   <div className='w-full flex justify-end gap-4'>
-                      <button type='button' onClick={handleCloseModal} className='bg-gray-300 text-[#020817] text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Cancel</button>
-                      <button type='submit' className='bg-blue-500 text-white text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Create</button>
+                      <button type='button' onClick={handleCloseModal} className='bg-gray-300 hover:bg-gray-400 text-[#020817] text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Cancel</button>
+                      <button type='submit' className='bg-blue-500 hover:bg-blue-600 text-white text-[14px] lg:text-[20px] font-[500] px-4 py-2 rounded-md cursor-pointer transition-all duration-300'>Create</button>
                   </div>
               </form>
              

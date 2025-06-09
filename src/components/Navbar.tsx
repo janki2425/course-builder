@@ -9,12 +9,9 @@ import { useParams, usePathname } from 'next/navigation'
 const Navbar = () => {
     const {
         title,
-        courseDescription,
         isEditing,
         setTitle,
         setIsEditing,
-        togglePublish,
-        saveCourse,
         setCourse,
         publishCourse,
         courses,

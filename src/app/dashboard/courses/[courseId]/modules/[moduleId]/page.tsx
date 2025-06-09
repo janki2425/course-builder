@@ -17,7 +17,7 @@ const ModulePage = () => {
     const courseId = params.courseId as string;
     const moduleId = searchParams.get('module') || '';
     const topicId = searchParams.get('topic');
-    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
+    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse} = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
     const moduleTitle = currentModule?.title || 'New Module';
@@ -29,12 +29,21 @@ const ModulePage = () => {
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
-    const [formTitle, setFormTitle] = useState('');
-    const [formContent, setFormContent] = useState('');
-    const [formImageUrl, setFormImageUrl] = useState('');
-    const [formVideoUrl, setFormVideoUrl] = useState('');
-    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
 
+    // Add click handler to close topic selector
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (isAddingTopic && !target.closest('.topic-selector')) {
+                setIsAddingTopic(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isAddingTopic]);
 
     const topics = currentModule?.topics || [];
 
@@ -66,19 +75,7 @@ const ModulePage = () => {
         }
         setIsEditing(false);
     }
-    const openEditForm = (topic: Topic) => {
-        setEditingTopicId(topic.id);
-        setFormTitle(topic.title);
-        setFormContent(topic.content || '');
-        setFormImageUrl(topic.imageUrl || '');
-        setFormVideoUrl(topic.videoUrl || '');
-        setFormTableData(topic.tableData || [['Header 1', 'Header 2'], ['', '']]);
-        
-        // Update URL with topic ID
-        const currentSearchParams = new URLSearchParams(searchParams.toString());
-        currentSearchParams.set('topic', topic.id.toString());
-        router.push(`${pathname}?${currentSearchParams.toString()}`);
-    };
+    
 
     const handleTopicSelection = (topicTypeId: number) => {
         const topicType = topicTypes.find(t => t.id === topicTypeId);
@@ -94,7 +91,7 @@ const ModulePage = () => {
             imageUrl: '',
             videoUrl: '',
             tableData: topicType.type === 'table' ? [['Header 1', 'Header 2']] : undefined,
-            boxColor: topicType.type === 'information' ? [] : undefined
+            boxColor: topicType.type === 'information' ? ['#223C53', '#89B4DD', '#1d316a','blue'] : undefined
         };
 
         // Update module with new topic
@@ -189,7 +186,7 @@ const ModulePage = () => {
                     </button>
                 </div>
                 {isAddingTopic && (
-                    <div className='w-full flex flex-col gap-1 items-start justify-center text-[14px] text-[#020817] font-[400] p-2 mt-2 shadow-lg rounded-lg'>
+                    <div className='topic-selector w-full flex flex-col gap-1 items-start justify-center text-[14px] text-[#020817] font-[400] p-2 mt-2 shadow-lg rounded-lg transition-all duration-300'>
                         {topicTypes.map((topic) => (
                         <div
                             key={topic.id}
