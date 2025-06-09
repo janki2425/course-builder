@@ -9,14 +9,21 @@ import { Module } from '@/utils/types';
 import Content from '@/components/Content';
 import { topicTypes } from '@/components/Content';
 
+interface PageProps {
+  params: {
+    moduleId: string;
+    topicId:string;
+  };
+}
 
 
-const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }) => {
-    const params = useParams();
+const ModulePage = ({ params }: PageProps) => {
+    const { moduleId,topicId } = params;
+    const param = useParams();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const courseId = params.courseId as string;
+    const courseId = param.courseId as string;
     const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
