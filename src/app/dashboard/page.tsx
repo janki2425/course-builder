@@ -47,7 +47,7 @@ export default function DashboardPage() {
       courseDescription: newCourseDescription,
       courseImage: "",
       courseVideo: "",
-      modules: [],
+      modules: [], 
     };
 
     saveCourse(newCourse);
