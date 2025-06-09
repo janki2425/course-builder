@@ -94,7 +94,7 @@ const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string |
             imageUrl: '',
             videoUrl: '',
             tableData: topicType.type === 'table' ? [['Header 1', 'Header 2']] : undefined,
-            boxColor: topicType.type === 'information' ? '' : undefined
+            boxColor: topicType.type === 'information' ? [] : undefined
         };
 
         // Update module with new topic
