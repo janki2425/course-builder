@@ -22,6 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from "@dnd-kit/utilities";
+import TopicTable from './TopicTable';
 
 export const topicTypes = [
     {
@@ -80,76 +81,6 @@ const boxColorList=[
     },
 ]
 
-type TableEditorProps = {
-    value: string[][];
-    onChange: (val: string[][]) => void;
-};
-
-const TableEditor: React.FC<TableEditorProps> = ({ value, onChange }) => {
-    const maxColumns = 10;
-    const addRow = () => onChange([...value, Array(value[0].length).fill('')]);
-    const addCol = () => {
-      if (value[0].length < maxColumns) {
-        onChange(value.map((row, i) =>
-          [...row, i === 0 ? `Header ${row.length + 1}` : '']
-        ));
-      }
-    };
-    const updateCell = (rowIdx: number, colIdx: number, val: string) => {
-      const newTable = value.map((row, r) =>
-        row.map((cell, c) => (r === rowIdx && c === colIdx ? val : cell))
-      );
-      onChange(newTable);
-    };
-    return (
-      <div className="mb-6">
-        <table className="w-full border mb-4">
-          <thead>
-            <tr>
-              {value[0]?.map((cell, idx) => (
-                <th key={idx} className="px-2 py-1 border">{cell}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {value.slice(1).map((row, rIdx) => (
-              <tr key={rIdx}>
-                {row.map((cell, cIdx) => (
-                  <td key={cIdx} className="border px-2 py-1">
-                    <input
-                      className="w-full focus:border p-1 rounded-sm focus:outline-none"
-                      placeholder='Cell content'
-                      value={cell}
-                      onChange={e => updateCell(rIdx + 1, cIdx, e.target.value)}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-         </tbody>
-        </table>
-        <button 
-        type="button" 
-        className="mr-2 px-2 py-1 border rounded" 
-        onClick={addRow}>Add Row</button>
-        <button
-          type="button"
-          className="px-2 py-1 mr-2 border rounded"
-          onClick={e => { e.stopPropagation(); addCol(); }}
-          disabled={value[0].length >= maxColumns}
-        >
-          Add Column
-          </button>
-          <button 
-            type="button" 
-            className="mr-2 px-2 py-1 border rounded text-red-400"
-            onClick={e => { e.stopPropagation(); onChange([['Header 1', 'Header 2']]); }}
-          >
-            Clear Table
-          </button>
-      </div>
-  );
-};
 
 interface SortableTopicProps {
     topic: Topic;
@@ -178,9 +109,7 @@ interface SortableTopicProps {
 const SortableTopic: React.FC<SortableTopicProps> = ({
     topic,
     isEditing,
-    editingTopicId,
     setEditingTopicId,
-    handleUpdateTopic,
     handleDeleteTopic,
     pendingDeleteId,
     setPendingDeleteId,
@@ -218,10 +147,10 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         const timeout = setTimeout(updateHeight, 100); // Delay to ensure content is rendered
 
         // Use ResizeObserver for dynamic content changes
-        const resizeObserver = new ResizeObserver(updateHeight);
-        if (topicRef.current) {
-            resizeObserver.observe(topicRef.current);
-        }
+        // const resizeObserver = new ResizeObserver(updateHeight);
+        // if (topicRef.current) {
+        //     resizeObserver.observe(topicRef.current);
+        // }
 
         // Listen for image/video load events to update height
         const images = topicRef.current?.querySelectorAll('img');
@@ -236,7 +165,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
 
         return () => {
             clearTimeout(timeout);
-            resizeObserver.disconnect();
+            // resizeObserver.disconnect();
             images?.forEach(img => img.removeEventListener('load', handleMediaLoad));
             videos?.forEach(video => video.removeEventListener('loadedmetadata', handleMediaLoad));
             window.removeEventListener('resize', updateHeight);
@@ -251,8 +180,8 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         width: '100%',
         flexShrink: 0,
         flexGrow: 0,
-        height: isDragging ? topicHeight : 'auto', // Use calculated height only when dragging
-        minHeight: topicHeight !== 'auto' ? topicHeight : 'auto', // Preserve space when not dragging
+        height: isDragging ? topicHeight : 'auto',
+        minHeight: topicHeight !== 'auto' ? topicHeight : 'auto',
         overflow: isDragging ? 'hidden' : 'visible',
     };
 
@@ -273,7 +202,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                 <div className={`w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
                     {topic.type === 'text' ? (
                         <>
-                            <label className="block mb-1">Topic Title</label>
+                            {/* <label className="block mb-1">Topic Title</label>
                             <input
                                 type="text"
                                 value={formTitle}
@@ -281,7 +210,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                 className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
                                 onClick={e => e.stopPropagation()}
                                 onKeyDown={e => e.stopPropagation()}
-                            />
+                            /> */}
                             <label className="block text-sm font-medium mb-1">Content</label>
                             <textarea
                                 placeholder='Enter text content...'
@@ -420,14 +349,14 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                             )}
                         </div>
                     ) : topic.type === 'table' ? (
-                        <TableEditor
+                        <TopicTable
                             value={formTableData}
                             onChange={setFormTableData}
                         />
                     ) : null}
                     <div className="flex gap-2 justify-end">
                         <button
-                            className="px-3 py-1 rounded-md bg-white border-[1px] border-[#9b87f5] text-[14px] text-black cursor-pointer"
+                            className="px-3 py-1 rounded-md bg-white hover:bg-[#f8f8f8] border-[1px] border-[#9b87f5] text-[14px] text-black cursor-pointer"
                             onClick={e => {
                                 e.stopPropagation();
                                 setEditingTopicId(null);
@@ -436,7 +365,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                             Cancel
                         </button>
                         <button
-                            className="py-2 px-4 rounded-md bg-[#9b87f5] text-white text-[14px] font-[500] cursor-pointer"
+                            className="py-2 px-4 rounded-md bg-[#9b87f5] hover:bg-[#8f7ce2] text-white text-[14px] font-[500] cursor-pointer"
                             onClick={e => {
                                 e.stopPropagation();
                                 handleSaveTopic(topic.id);

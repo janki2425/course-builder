@@ -35,6 +35,20 @@ const ModulePage = () => {
     const [formVideoUrl, setFormVideoUrl] = useState('');
     const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
 
+    // Add click handler to close topic selector
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (isAddingTopic && !target.closest('.topic-selector')) {
+                setIsAddingTopic(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isAddingTopic]);
 
     const topics = currentModule?.topics || [];
 
@@ -189,7 +203,7 @@ const ModulePage = () => {
                     </button>
                 </div>
                 {isAddingTopic && (
-                    <div className='w-full flex flex-col gap-1 items-start justify-center text-[14px] text-[#020817] font-[400] p-2 mt-2 shadow-lg rounded-lg'>
+                    <div className='topic-selector w-full flex flex-col gap-1 items-start justify-center text-[14px] text-[#020817] font-[400] p-2 mt-2 shadow-lg rounded-lg transition-all duration-300'>
                         {topicTypes.map((topic) => (
                         <div
                             key={topic.id}
