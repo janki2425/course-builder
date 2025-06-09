@@ -21,7 +21,7 @@ import { useNavbarStore } from '@/app/store/navbarStore'
 import { Module } from '@/utils/types'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  courseId?: string; // courseId is optional
+  courseId?: string;
 }
 
 export function AppSidebar({
@@ -32,7 +32,7 @@ export function AppSidebar({
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
-  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, _hasHydrated , updateModuleDurationInCourse } = useNavbarStore()
+  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, } = useNavbarStore()
 
   
   const isMobile = useMediaQuery("(max-width: 768px)");

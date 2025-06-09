@@ -62,25 +62,6 @@ export const topicTypes = [
     }
 ]
 
-const boxColorList=[
-    {
-        id:1,
-        color:'blue',
-    },
-    {
-        id:2,
-        color:'green',
-    },
-    {
-        id:3,
-        color:'yellow',
-    },
-    {
-        id:4,
-        color:'red',
-    },
-]
-
 
 interface SortableTopicProps {
     topic: Topic;
@@ -136,21 +117,14 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         if (topicRef.current && !isDragging) {
             const height = topicRef.current.getBoundingClientRect().height;
             setTopicHeight(`${height}px`);
-            // Debug log to verify height calculation for each topic
-            console.log(`Topic ${topic.id} height calculated: ${height}px`);
         }
     }, [topic.id, isDragging]);
 
     // Calculate height when content changes or renders
     useEffect(() => {
         // Initial height calculation after render
-        const timeout = setTimeout(updateHeight, 100); // Delay to ensure content is rendered
+       
 
-        // Use ResizeObserver for dynamic content changes
-        // const resizeObserver = new ResizeObserver(updateHeight);
-        // if (topicRef.current) {
-        //     resizeObserver.observe(topicRef.current);
-        // }
 
         // Listen for image/video load events to update height
         const images = topicRef.current?.querySelectorAll('img');
@@ -160,12 +134,9 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         images?.forEach(img => img.addEventListener('load', handleMediaLoad));
         videos?.forEach(video => video.addEventListener('loadedmetadata', handleMediaLoad));
 
-        // Update height when window resizes (for responsive layouts)
         window.addEventListener('resize', updateHeight);
 
         return () => {
-            clearTimeout(timeout);
-            // resizeObserver.disconnect();
             images?.forEach(img => img.removeEventListener('load', handleMediaLoad));
             videos?.forEach(video => video.removeEventListener('loadedmetadata', handleMediaLoad));
             window.removeEventListener('resize', updateHeight);
@@ -202,15 +173,6 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                 <div className={`w-full mt-2 bg-white p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
                     {topic.type === 'text' ? (
                         <>
-                            {/* <label className="block mb-1">Topic Title</label>
-                            <input
-                                type="text"
-                                value={formTitle}
-                                onChange={e => setFormTitle(e.target.value)}
-                                className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
-                                onClick={e => e.stopPropagation()}
-                                onKeyDown={e => e.stopPropagation()}
-                            /> */}
                             <label className="block text-sm font-medium mb-1">Content</label>
                             <textarea
                                 placeholder='Enter text content...'
@@ -541,7 +503,6 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                     )}
                 </div>
             )}
-        
             </div>
         </div>
     );
@@ -549,8 +510,6 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
 
 const Content = ({ 
     moduleId,
-    topicId,
-    isTopicEditing,
     editingTopicId,
     setEditingTopicId
 }: { 
@@ -564,14 +523,15 @@ const Content = ({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+
     const courseId = params.courseId as string;
     const { courses, setCourse } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
     const topics = useMemo(() => currentModule?.topics || [], [currentModule?.topics]);
-    const activeTopic = topics.find((t: Topic) => t.id === editingTopicId);
 
     const { setIsTopicEditing } = useModuleEditStore();
+
     const [formTitle, setFormTitle] = useState('');
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
@@ -635,13 +595,6 @@ const Content = ({
         setDraggedTopic(null);
     };
 
-    const openEditForm = (topic: Topic) => {
-        setEditingTopicId(topic.id);
-        setIsTopicEditing(true);
-        const currentSearchParams = new URLSearchParams(searchParams.toString());
-        currentSearchParams.set('topic', topic.id.toString());
-        router.replace(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
-    };
 
     const handleDeleteTopic = async (topicId: number) => {
         if (!moduleId || !courseId || !currentModule) return;

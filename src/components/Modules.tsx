@@ -23,13 +23,11 @@ import { useNavbarStore } from '@/app/store/navbarStore';
 
 const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()
-  const { setIsEditing } = useModuleEditStore();
   const { setSelectedModule } = useNavbarStore();
   const [isEditing, setIsEditingLocal] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(mod.title);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const topicCount = getModuleTopicCount(mod.id);
 
   const handleModuleClick = (id: string) => {
     if (!isEditing) {
@@ -38,7 +36,6 @@ const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModu
         // Set the selected module in the store
         setSelectedModule(id);
       } else {
-        // This case should not happen if we are always in a course context
         alert('Module navigation error: No course ID')
       }
     }
@@ -175,7 +172,6 @@ const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeMo
   const { setIsEditing } = useModuleEditStore();
   const { setSelectedModule } = useNavbarStore();
 
-  console.log('Modules component modules:', modules);
 
   const handleRemoveModule = (courseId: string | undefined, moduleId: string) => {
     if (courseId) {

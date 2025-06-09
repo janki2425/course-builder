@@ -9,10 +9,10 @@ import ModulePage from './modules/[moduleId]/page';
 const CourseDetailsPage = () => {
   const params = useParams();
   const searchParams = useSearchParams();
+
   const courseId = params.courseId as string;
   const moduleId = searchParams.get('module');
-  const topicId = searchParams.get('topic');
-
+  
   const { courses, setTitle } = useNavbarStore();
   const course = courses[courseId];
 

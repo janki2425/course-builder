@@ -17,7 +17,7 @@ const ModulePage = () => {
     const courseId = params.courseId as string;
     const moduleId = searchParams.get('module') || '';
     const topicId = searchParams.get('topic');
-    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse, _hasHydrated } = useNavbarStore();
+    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse} = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
     const moduleTitle = currentModule?.title || 'New Module';
@@ -29,11 +29,6 @@ const ModulePage = () => {
     const [inputValue, setInputValue] = useState('');
     const [isAddingTopic, setIsAddingTopic] = useState(false);
     const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
-    const [formTitle, setFormTitle] = useState('');
-    const [formContent, setFormContent] = useState('');
-    const [formImageUrl, setFormImageUrl] = useState('');
-    const [formVideoUrl, setFormVideoUrl] = useState('');
-    const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2'], ['', '']]);
 
     // Add click handler to close topic selector
     useEffect(() => {

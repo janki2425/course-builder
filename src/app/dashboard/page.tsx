@@ -19,15 +19,13 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleCreateCourseSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
-    // Basic validation
     if (!newCourseName.trim()) {
       toast.error('Please enter a course name.');
       return;
     }
 
-    // Generate a unique course ID (similar to handleSave logic)
     let courseId = 0;
     for (let i = 1; i <= 1000; i++) {
       if (courses[i] === undefined) {
@@ -52,7 +50,6 @@ export default function DashboardPage() {
 
     saveCourse(newCourse);
 
-    // Reset form and close modal
     setNewCourseName('');
     setNewCourseType('');
     setNewCourseDescription('');

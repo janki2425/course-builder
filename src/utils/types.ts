@@ -67,12 +67,11 @@ export type NavbarState = {
     reorderModulesInCourse: (courseId: string, orderedModules: Module[]) => void
     updateModuleDurationInCourse: (courseId: string, moduleId: string, newDuration: number) => void
     publishCourse: (course: CourseDetails) => boolean
-    _hasHydrated?: boolean;
 }
 
 export const useNavbarStore = create<NavbarState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       title: 'Untitled Courses',
       moduleTitle: 'New Module',
       courses: {},
