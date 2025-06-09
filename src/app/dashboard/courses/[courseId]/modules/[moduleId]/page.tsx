@@ -11,7 +11,7 @@ import { topicTypes } from '@/components/Content';
 
 
 
-const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string | null }) => {
+const ModulePage = ({ moduleId, topicId }: { moduleId: string, topicId: string }) => {
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
