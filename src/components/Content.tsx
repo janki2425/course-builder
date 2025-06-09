@@ -1,4 +1,4 @@
-import React, { useRef , useState, useEffect, useCallback } from 'react'
+import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useNavbarStore } from '@/app/store/navbarStore';
@@ -649,7 +649,7 @@ const Content = ({
     const { courses, setCourse } = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
-    const topics = currentModule?.topics || [];
+    const topics = useMemo(() => currentModule?.topics || [], [currentModule?.topics]);
     const activeTopic = topics.find((t: Topic) => t.id === editingTopicId);
 
     const { setIsTopicEditing } = useModuleEditStore();

@@ -45,9 +45,9 @@ export default function DashboardPage() {
       courseId: courseId.toString(),
       courseTitle: newCourseName,
       courseDescription: newCourseDescription,
-      courseImage: "", // Initialize with empty values
-      courseVideo: "", // Initialize with empty values
-      modules: [], // New course starts with no modules
+      courseImage: "",
+      courseVideo: "",
+      modules: [],
     };
 
     saveCourse(newCourse);
