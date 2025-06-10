@@ -1,6 +1,6 @@
 'use client'
 
-import React from "react"
+import React,{useState} from "react"
 import Image from "next/image"
 import { useNavbarStore } from "@/app/store/navbarStore"
 import { toast } from "react-hot-toast"
@@ -9,14 +9,14 @@ import { useMediaQuery } from "usehooks-ts"
 
 export default function DashboardPage() {
   const courses = useNavbarStore((s) => s.courses);
-  const [showCreateCourseModal, setShowCreateCourseModal] = React.useState(false);
+  const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const { saveCourse, deleteCourse } = useNavbarStore();
   const router = useRouter();
 
-  const [newCourseName, setNewCourseName] = React.useState('');
-  const [newCourseType, setNewCourseType] = React.useState('');
-  const [newCourseDescription, setNewCourseDescription] = React.useState('');
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [newCourseName, setNewCourseName] = useState('');
+  const [newCourseType, setNewCourseType] = useState('');
+  const [newCourseDescription, setNewCourseDescription] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCreateCourseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
   return (
     
-    <div className={`w-full bg-gray-100 mx-auto min-h-screen ${isMobile ? 'ml-[45px] max-w-[calc(100vw-45px)]' : 'ml-[220px] max-w-[calc(100vw-220px)]'}`}>
+    <div className={`w-full bg-gray-100 mx-auto h-auto ${isMobile ? 'ml-[45px] max-w-[calc(100vw-45px)]' : 'ml-[220px] max-w-[calc(100vw-220px)]'}`}>
       <div className="p-4 md:p-12 transition-all duration-300">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 transition-all duration-300">
           <h2 className="text-[24px] font-[600]">Courses</h2>
@@ -109,7 +109,7 @@ export default function DashboardPage() {
                     .filter(course =>
                         course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase())
                     )
-                    .map((course, idx) => (
+                    .map((course) => (
                     <tr 
                       key={course.courseId}
                       className="cursor-pointer hover:bg-gray-200 transition-colors duration-150"
