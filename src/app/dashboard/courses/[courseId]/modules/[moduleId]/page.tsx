@@ -4,19 +4,19 @@ import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic, TopicType} from '@/utils/types';
-import { Module } from '@/utils/types';
-import Content from '@/components/Content';
-import { topicTypes } from '@/components/Content';
+import { Topic, TopicType ,Module} from '@/utils/types';
+import Content, { topicTypes } from '@/components/Content';
 
 const ModulePage = () => {
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+
     const courseId = params.courseId as string;
     const moduleId = searchParams.get('module') || '';
     const topicId = searchParams.get('topic');
+    
     const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse} = useNavbarStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);

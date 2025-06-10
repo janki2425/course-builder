@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React,{useState} from 'react'
 import Image from 'next/image'
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import {
@@ -21,12 +21,12 @@ import { useRouter } from 'next/navigation'
 import { Module } from '@/utils/types';
 import { useNavbarStore } from '@/app/store/navbarStore';
 
-const SortableItem = ({ mod, onRemove, getModuleTopicCount, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
+const SortableItem = ({ mod, onRemove, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()
   const { setSelectedModule } = useNavbarStore();
-  const [isEditing, setIsEditingLocal] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(mod.title);
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [isEditing, setIsEditingLocal] = useState(false);
+  const [inputValue, setInputValue] = useState(mod.title);
+  const [isHovered, setIsHovered] = useState(false);
 
 
   const handleModuleClick = (id: string) => {

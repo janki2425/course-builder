@@ -81,12 +81,9 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        
-      </SidebarHeader>
       <SidebarContent>
         {dashboard ? (
-          <div className="mt-[72px] px-1">
+          <div className="mt-[80px] px-1">
             {isMobile ? (
               <div className="w-full flex items-center justify-center py-2 rounded-sm bg-gray-200">
               <Image src={'/course/course.svg'} width={16} height={16} alt="course"/>
@@ -184,9 +181,6 @@ export function AppSidebar({
           </div>
         )}
       </SidebarContent>
-      <SidebarFooter>
-        
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

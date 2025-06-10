@@ -122,10 +122,6 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
 
     // Calculate height when content changes or renders
     useEffect(() => {
-        // Initial height calculation after render
-       
-
-
         // Listen for image/video load events to update height
         const images = topicRef.current?.querySelectorAll('img');
         const videos = topicRef.current?.querySelectorAll('video');
@@ -542,7 +538,7 @@ const Content = ({
     const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
 
     // Initialize form state when editing topic changes
-    React.useEffect(() => {
+    useEffect(() => {
         const topicToEdit = topics.find((t: Topic) => t.id === editingTopicId);
         if (topicToEdit) {
             setFormTitle(topicToEdit.title);
