@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { useNavbarStore } from '@/app/store/navbarStore'
+import { useNavbarStore } from '@/app/store/Store'
 
 interface CreateFirstModuleProps {
   courseId: string;

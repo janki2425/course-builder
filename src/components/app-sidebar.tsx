@@ -15,9 +15,7 @@ import { useEffect } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
 import { useSidebarStore } from "@/app/store/sidebarStore"
-import { useNavbarStore } from '@/app/store/navbarStore'
-// import { Module } from '@/types/store'
-import { Module } from "@/utils/types"
+import { useNavbarStore ,Module} from '@/app/store/Store'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   courseId?: string;

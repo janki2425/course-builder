@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { useNavbarStore } from '@/app/store/navbarStore'
+import { useNavbarStore } from '@/app/store/Store'
 import { toast } from 'react-hot-toast'
 import { useParams, usePathname } from 'next/navigation'
 
@@ -25,7 +25,7 @@ const Navbar = () => {
     const isPublished = currentCourse?.isPublished || false;
 
     const dashboardPath = usePathname();
-    const dashboard = dashboardPath == '/dashboard';
+    const dashboard = dashboardPath === '/dashboard' || dashboardPath === '/';
 
 
     const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {

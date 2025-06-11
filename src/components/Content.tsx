@@ -1,9 +1,9 @@
 import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic,Module } from '@/utils/types';
-// import { Module } from '@/types/store';
+import { useNavbarStore } from '@/app/store/Store';
+import { Topic } from '@/utils/types';
+import { Module } from '@/app/store/Store';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
 import Vimeo from '@u-wave/react-vimeo';
 import {

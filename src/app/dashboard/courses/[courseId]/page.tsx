@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useNavbarStore } from '@/app/store/navbarStore';
+import { useNavbarStore } from '@/app/store/Store';
 import { AppSidebar } from '@/components/app-sidebar';
 import CreateFirstModule from '@/components/CreateFirstModule';
 import ModulePage from './modules/[moduleId]/page';

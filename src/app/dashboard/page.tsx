@@ -2,7 +2,7 @@
 
 import React,{useState} from "react"
 import Image from "next/image"
-import { useNavbarStore } from "@/app/store/navbarStore"
+import { useNavbarStore } from "@/app/store/Store"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "usehooks-ts"
@@ -70,7 +70,9 @@ export default function DashboardPage() {
 
   return (
     
-    <div className={`w-full bg-gray-100 mx-auto h-auto ${isMobile ? 'ml-[45px] max-w-[calc(100vw-45px)]' : 'ml-[220px] max-w-[calc(100vw-220px)]'}`}>
+   <div className={`w-full mx-auto ${isMobile ? 'ml-[45px] max-w-[calc(100vw-45px)]' : 'ml-[220px] max-w-[calc(100vw-220px)]'}`}>
+     <div className="w-full max-w-[1440px] mx-auto">
+     <div className={`w-full bg-gray-100 mx-auto h-auto`}>
       <div className="p-4 md:p-12 transition-all duration-300">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 transition-all duration-300">
           <h2 className="text-[24px] font-[600]">Courses</h2>
@@ -206,5 +208,7 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+     </div>
+   </div>
   )
 }

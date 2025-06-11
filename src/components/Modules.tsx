@@ -18,8 +18,8 @@ import {
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from 'next/navigation'
-import { Module } from '@/utils/types';
-import { useNavbarStore } from '@/app/store/navbarStore';
+import { Module } from '@/app/store/Store';
+import { useNavbarStore } from '@/app/store/Store';
 
 const SortableItem = ({ mod, onRemove, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()

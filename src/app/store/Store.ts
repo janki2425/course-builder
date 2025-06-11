@@ -1,8 +1,60 @@
 'use client'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { NavbarState, Module, CourseDetails } from '@/utils/types'
+import { Topic } from '@/utils/types'
 
+export type Module = {
+  id: string;
+  title: string;
+  duration: number;
+  topics: Topic[];
+}
+
+export type CourseDetails = {
+  courseId: string;
+  courseTitle: string;
+  courseDescription: string;
+  courseImage: string;
+  courseVideo: string;
+  modules: Module[];
+  isPublished?: boolean;
+}
+
+export interface NavbarState {
+  // Course state
+  title: string;
+  courseDescription: string;
+  courses: Record<string, CourseDetails>;
+  
+  // Module state
+  moduleTitle: string;
+  selectedModule: string | null;
+  
+  // UI state
+  isEditing: boolean;
+  isPublished: boolean;
+  publish: boolean;
+  save: any[];
+  
+  // Actions
+  setTitle: (title: string) => void;
+  setModuleTitle: (moduleTitle: string) => void;
+  setIsEditing: (editing: boolean) => void;
+  setCourseDescription: (courseDescription: string) => void;
+  setIsPublished: (published: boolean) => void;
+  togglePublish: () => void;
+  setSave: (save: any[]) => void;
+  setSelectedModule: (moduleId: string | null) => void;
+  setCourse: (courseId: string, courseData: Partial<CourseDetails>) => void;
+  addModuleToCourse: (courseId: string, module: Module) => void;
+  removeModuleFromCourse: (courseId: string, moduleId: string) => void;
+  updateModuleTitleInCourse: (courseId: string, moduleId: string, newTitle: string) => void;
+  reorderModulesInCourse: (courseId: string, orderedModules: Module[]) => void;
+  updateModuleDurationInCourse: (courseId: string, moduleId: string, newDuration: number) => void;
+  publishCourse: (course: CourseDetails) => boolean;
+  saveCourse: (course: CourseDetails) => void;
+  deleteCourse: (courseId: string) => void;
+}
 
 export const useNavbarStore = create<NavbarState>()(
   persist(
@@ -34,7 +86,7 @@ export const useNavbarStore = create<NavbarState>()(
       addModuleToCourse: (courseId: string, module: Module) =>
         set((state) => {
           const course = state.courses[courseId];
-          if (!course) return state; // Course not found
+          if (!course) return state;
 
           const updatedModules = [...(course.modules || []), module];
 
@@ -48,7 +100,7 @@ export const useNavbarStore = create<NavbarState>()(
       removeModuleFromCourse: (courseId: string, moduleId: string) =>
         set((state) => {
           const course = state.courses[courseId];
-          if (!course) return state; // Course not found
+          if (!course) return state;
 
           const updatedModules = (course.modules || []).filter(
             (mod) => mod.id !== moduleId
@@ -64,7 +116,7 @@ export const useNavbarStore = create<NavbarState>()(
       updateModuleTitleInCourse: (courseId, moduleId, newTitle) =>
         set((state) => {
           const course = state.courses[courseId];
-          if (!course) return state; // Course not found
+          if (!course) return state;
 
           const updatedModules = (course.modules || []).map((mod) =>
             mod.id === moduleId ? { ...mod, title: newTitle } : mod
@@ -80,9 +132,8 @@ export const useNavbarStore = create<NavbarState>()(
       reorderModulesInCourse: (courseId, orderedModules) =>
         set((state) => {
           const course = state.courses[courseId];
-          if (!course) return state; // Course not found
+          if (!course) return state;
 
-          // Assuming orderedModules is the new array of modules in the desired order
           return {
             courses: {
               ...state.courses,
@@ -107,28 +158,26 @@ export const useNavbarStore = create<NavbarState>()(
           };
         }),
       publishCourse: (course: CourseDetails) => {
-        const state = get(); // Use get() to access current state
+        const state = get();
         const courseToPublish = state.courses[course.courseId];
 
         if (!courseToPublish || !courseToPublish.courseTitle?.trim() || (courseToPublish.modules || []).length === 0) {
-          // Cannot publish if course not found, title is empty, or no modules
-          return false; 
+          return false;
         }
 
         const updatedCourse = {
           ...courseToPublish,
-          isPublished: !courseToPublish.isPublished // Toggle published status
+          isPublished: !courseToPublish.isPublished
         };
 
-        // Update state and manually save to local storage
         const updatedCourses = {
           ...state.courses,
           [course.courseId]: updatedCourse,
         };
         localStorage.setItem('navbar-storage', JSON.stringify({ state: { courses: updatedCourses } }));
         
-        set({ courses: updatedCourses }); // Update state
-        return true; // Publishing successful
+        set({ courses: updatedCourses });
+        return true;
       },
       saveCourse: (course: CourseDetails) =>
         set((state) => ({
@@ -140,8 +189,7 @@ export const useNavbarStore = create<NavbarState>()(
       deleteCourse: (courseId: string) => {
         set((state) => {
           const updatedCourses = { ...state.courses };
-          delete updatedCourses[courseId]; // Use delete operator
-          // Manually save to local storage
+          delete updatedCourses[courseId];
           localStorage.setItem('navbar-storage', JSON.stringify({ state: { courses: updatedCourses } }));
           return { courses: updatedCourses };
         });
