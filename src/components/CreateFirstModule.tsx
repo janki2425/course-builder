@@ -1,14 +1,14 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { useNavbarStore } from '@/app/store/Store'
+import { useStore } from '@/app/store/Store'
 
 interface CreateFirstModuleProps {
   courseId: string;
 }
 
 const CreateFirstModule = ({ courseId }: CreateFirstModuleProps) => {
-    const { addModuleToCourse, courses } = useNavbarStore();
+    const { addModuleToCourse, courses } = useStore();
     const modules = courses[courseId]?.modules || [];
     
     const handleAddModule = () => {

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { useNavbarStore } from '@/app/store/Store'
+import { useStore } from '@/app/store/Store'
 import { toast } from 'react-hot-toast'
 import { useParams, usePathname } from 'next/navigation'
 
@@ -15,7 +15,7 @@ const Navbar = () => {
         setCourse,
         publishCourse,
         courses,
-    } = useNavbarStore()
+    } = useStore()
 
     const params = useParams();
     const courseIdFromParams = params.courseId as string | undefined

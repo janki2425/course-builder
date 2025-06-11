@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useNavbarStore, Module } from "@/app/store/Store"
+import { useStore, Module } from "@/app/store/Store"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -612,8 +612,8 @@ function SidebarMenuSubButton({
 }
 
 export function AppSidebar() {
-  const { courses } = useNavbarStore();
-  const courseId = Object.keys(courses)[0]; // Get first course for now
+  const { courses } = useStore();
+  const courseId = Object.keys(courses)[0];
   const course = courseId ? courses[courseId] : null;
   const modules = course?.modules || [];
 
