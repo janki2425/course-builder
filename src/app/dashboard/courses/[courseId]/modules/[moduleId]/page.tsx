@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { useNavbarStore, Module } from '@/app/store/Store';
+import { useStore, Module } from '@/app/store/Store';
 import { Topic, TopicType } from '@/utils/types';
 import Content, { topicTypes } from '@/components/Content';
 
@@ -17,7 +17,7 @@ const ModulePage = () => {
     const moduleId = searchParams.get('module') || '';
     const topicId = searchParams.get('topic');
     
-    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse} = useNavbarStore();
+    const { courses, updateModuleTitleInCourse, updateModuleDurationInCourse, setCourse} = useStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
     const moduleTitle = currentModule?.title || 'New Module';

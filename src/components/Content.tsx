@@ -1,7 +1,7 @@
 import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useNavbarStore } from '@/app/store/Store';
+import { useStore } from '@/app/store/Store';
 import { Topic } from '@/utils/types';
 import { Module } from '@/app/store/Store';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
@@ -522,7 +522,7 @@ const Content = ({
     const searchParams = useSearchParams();
 
     const courseId = params.courseId as string;
-    const { courses, setCourse } = useNavbarStore();
+    const { courses, setCourse } = useStore();
     const course = courseId ? courses[courseId] : null;
     const currentModule = course?.modules?.find(mod => mod.id === moduleId);
     const topics = useMemo(() => currentModule?.topics || [], [currentModule?.topics]);

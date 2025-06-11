@@ -2,15 +2,15 @@
 
 import React,{useState} from "react"
 import Image from "next/image"
-import { useNavbarStore } from "@/app/store/Store"
+import { useStore } from "@/app/store/Store"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "usehooks-ts"
 
 export default function DashboardPage() {
-  const courses = useNavbarStore((s) => s.courses);
+  const courses = useStore((s) => s.courses);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
-  const { saveCourse, deleteCourse } = useNavbarStore();
+  const { saveCourse, deleteCourse } = useStore();
   const router = useRouter();
 
   const [newCourseName, setNewCourseName] = useState('');

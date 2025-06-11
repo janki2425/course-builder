@@ -19,11 +19,11 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from 'next/navigation'
 import { Module } from '@/app/store/Store';
-import { useNavbarStore } from '@/app/store/Store';
+import { useStore } from '@/app/store/Store';
 
 const SortableItem = ({ mod, onRemove, courseId, updateModuleTitle }: { mod: Module, onRemove: (courseId: string | undefined, moduleId: string) => void, getModuleTopicCount: (moduleId: string) => number, courseId?: string, updateModuleTitle: (courseId: string, moduleId: string, newTitle: string) => void }) => {
   const router = useRouter()
-  const { setSelectedModule } = useNavbarStore();
+  const { setSelectedModule } = useStore();
   const [isEditing, setIsEditingLocal] = useState(false);
   const [inputValue, setInputValue] = useState(mod.title);
   const [isHovered, setIsHovered] = useState(false);
@@ -170,7 +170,7 @@ interface ModulesProps {
 const Modules = ({ isCollapsed, modules, getModuleTopicCount, courseId, removeModule, reorderModules, updateModuleTitle }: ModulesProps) => {
   const router = useRouter();
   const { setIsEditing } = useModuleEditStore();
-  const { setSelectedModule } = useNavbarStore();
+  const { setSelectedModule } = useStore();
 
 
   const handleRemoveModule = (courseId: string | undefined, moduleId: string) => {

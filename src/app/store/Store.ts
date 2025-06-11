@@ -56,7 +56,7 @@ export interface NavbarState {
   deleteCourse: (courseId: string) => void;
 }
 
-export const useNavbarStore = create<NavbarState>()(
+export const useStore = create<NavbarState>()(
   persist(
     (set, get) => ({
       title: 'Untitled Courses',
@@ -174,7 +174,7 @@ export const useNavbarStore = create<NavbarState>()(
           ...state.courses,
           [course.courseId]: updatedCourse,
         };
-        localStorage.setItem('navbar-storage', JSON.stringify({ state: { courses: updatedCourses } }));
+        localStorage.setItem('course-storage', JSON.stringify({ state: { courses: updatedCourses } }));
         
         set({ courses: updatedCourses });
         return true;
@@ -190,13 +190,13 @@ export const useNavbarStore = create<NavbarState>()(
         set((state) => {
           const updatedCourses = { ...state.courses };
           delete updatedCourses[courseId];
-          localStorage.setItem('navbar-storage', JSON.stringify({ state: { courses: updatedCourses } }));
+          localStorage.setItem('course-storage', JSON.stringify({ state: { courses: updatedCourses } }));
           return { courses: updatedCourses };
         });
       },
     }),
     {
-      name: 'navbar-storage',
+      name: 'course-storage',
       partialize: (state) => ({
         title: state.title,
         moduleTitle: state.moduleTitle,

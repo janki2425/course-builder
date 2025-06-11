@@ -15,7 +15,7 @@ import { useEffect } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
 import { useSidebarStore } from "@/app/store/sidebarStore"
-import { useNavbarStore ,Module} from '@/app/store/Store'
+import { useStore ,Module} from '@/app/store/Store'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   courseId?: string;
@@ -29,7 +29,7 @@ export function AppSidebar({
   const isCollapsed = state === "collapsed"
   const router = useRouter()
   const setCollapsed = useSidebarStore((s) => s.setCollapsed)
-  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, } = useNavbarStore()
+  const { courses, addModuleToCourse, removeModuleFromCourse, updateModuleTitleInCourse, reorderModulesInCourse, } = useStore()
 
   
   const isMobile = useMediaQuery("(max-width: 768px)");
