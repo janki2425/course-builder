@@ -2,7 +2,8 @@ import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic , Module } from '@/utils/types';
+import { Topic,Module } from '@/utils/types';
+// import { Module } from '@/types/store';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
 import Vimeo from '@u-wave/react-vimeo';
 import {
@@ -118,7 +119,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
             const height = topicRef.current.getBoundingClientRect().height;
             setTopicHeight(`${height}px`);
         }
-    }, [topic.id, isDragging]);
+    }, [isDragging]);
 
     // Calculate height when content changes or renders
     useEffect(() => {
@@ -337,7 +338,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                 <div className='w-full flex flex-row items-center justify-between gap-2 md:gap-4 py-2 rounded-md'>
                     {topic.type === 'text' ? (
                         <div className='flex-grow rounded-sm'>
-                            <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] p-2 md:p-4 transition-all duration-300'>
+                            <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] transition-all duration-300'>
                                 {topic.content || ''}
                             </div>
                         </div>

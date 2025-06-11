@@ -29,7 +29,19 @@ const Navbar = () => {
 
 
     const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTitle(e.target.value)
+        const newTitle = e.target.value;
+        setTitle(newTitle);
+        
+        // Update course title in store if we're in a course page
+        if (currentCourseId) {
+            const currentCourseData = courses[currentCourseId];
+            if (currentCourseData) {
+                setCourse(currentCourseId, {
+                    ...currentCourseData,
+                    courseTitle: newTitle
+                });
+            }
+        }
     }
 
     const handlePublish = () => {
