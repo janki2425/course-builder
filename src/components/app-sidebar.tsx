@@ -5,8 +5,6 @@ import Image from "next/image"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -18,7 +16,8 @@ import { useMediaQuery } from "usehooks-ts"
 import Modules from "./Modules"
 import { useSidebarStore } from "@/app/store/sidebarStore"
 import { useNavbarStore } from '@/app/store/navbarStore'
-import { Module } from '@/utils/types'
+// import { Module } from '@/types/store'
+import { Module } from "@/utils/types"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   courseId?: string;
@@ -54,7 +53,7 @@ export function AppSidebar({
   const modules = courseId && course ? course.modules || [] : []
 
   const totalTopics = modules.reduce((acc: number, mod: Module) => acc + (mod.topics?.length || 0), 0);
-  const totalDuration = modules.reduce((acc, mod) => acc + mod.duration, 0)
+  const totalDuration = modules.reduce((acc, mod) => acc + (mod.duration || 0), 0)
 
   const getModuleTopicCount = (moduleId: string) => {
     const currentModule = modules.find(mod => mod.id === moduleId)

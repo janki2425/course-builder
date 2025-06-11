@@ -4,7 +4,8 @@ import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic, TopicType ,Module} from '@/utils/types';
+import { Topic, TopicType } from '@/utils/types';
+import { Module } from '@/types/store';
 import Content, { topicTypes } from '@/components/Content';
 
 const ModulePage = () => {
@@ -124,28 +125,28 @@ const ModulePage = () => {
     return (
         <div className='w-full h-auto mx-auto'>
             <div className='w-full max-w-[1280px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
-               <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full'>
-                <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
+               <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full px-6'>
+                    <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
                         {isEditing ? (
                             <input 
                                 type="text" 
                                 onChange={handleTitle}
                                 value={inputValue}
-                                className='w-full max-w-[300px] text-[12px] md:text-[18px] focus:outline-none text-[#020817] py-1 px-2 rounded-lg border-[2px] border-gray-700 font-bold transition-all duration-300'
+                                className='w-full max-w-[300px] text-[12px] md:text-[22px] focus:outline-none text-[#020817] py-1 px-2 rounded-lg border-[2px] border-gray-700 font-bold transition-all duration-300'
                                 autoFocus
                                 onBlur={handleSave}
                                 onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
                             />
                         ) : (
                             <h1 
-                                className='text-[14px] md:text-[20px] text-[#020817] font-[500] hover:text-[#9b87f5] cursor-pointer transition-all duration-300'
+                                className='text-[14px] md:text-[22px] lg:text-[28px] text-[#020817] font-[500] hover:text-[#9b87f5] cursor-pointer transition-all duration-300'
                                 onClick={() => setIsEditing(true)}
                             >
                                 {moduleTitle}
                             </h1>
                         )}
                     </div>
-                    <div className='w-fit flex items-center gap-2 p-2'>
+                    <div className='w-fit flex items-center gap-2'>
                         <label htmlFor="time" className='text-[12px] md:text-[14px] text-[#020817] font-[500] mb-1'>Duration</label>
                         <input 
                         type="number" 

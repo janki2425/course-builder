@@ -619,7 +619,7 @@ export function AppSidebar() {
   const modules = course?.modules || [];
 
   const totalTopics = modules.reduce((acc: number, mod: Module) => acc + (mod.topics?.length || 0), 0);
-  const totalDuration = modules.reduce((acc: number, mod: Module) => acc + mod.duration, 0)
+  const totalDuration = modules.reduce((acc: number, mod: Module) => acc + (mod.duration || 0), 0)
 
   return (
     <aside>
