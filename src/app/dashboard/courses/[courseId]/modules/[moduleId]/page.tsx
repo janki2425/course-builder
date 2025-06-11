@@ -4,8 +4,7 @@ import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useNavbarStore } from '@/app/store/navbarStore';
-import { Topic, TopicType } from '@/utils/types';
-import { Module } from '@/types/store';
+import { Topic, TopicType,Module } from '@/utils/types';
 import Content, { topicTypes } from '@/components/Content';
 
 const ModulePage = () => {
