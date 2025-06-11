@@ -60,6 +60,13 @@ export const topicTypes = [
         type: 'information',
         icon: '/course/modules/text.svg',
         selected: false
+    },
+    {
+        id: 6,
+        name:'file Topic',
+        type:'file',
+        icon:'/course/modules/file.svg',
+        selected: false
     }
 ]
 
@@ -83,6 +90,8 @@ interface SortableTopicProps {
     setFormImageUrl: (url: string) => void;
     formVideoUrl: string;
     setFormVideoUrl: (url: string) => void;
+    formFileUrl: string;
+    setFormFileUrl: (url: string) => void;
     formTableData: string[][];
     setFormTableData: (data: string[][]) => void;
     handleSaveTopic: (topicId: number) => void;
@@ -105,6 +114,8 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
     setFormImageUrl,
     formVideoUrl,
     setFormVideoUrl,
+    formFileUrl,
+    setFormFileUrl,
     formTableData,
     setFormTableData,
     handleSaveTopic
@@ -126,16 +137,19 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         // Listen for image/video load events to update height
         const images = topicRef.current?.querySelectorAll('img');
         const videos = topicRef.current?.querySelectorAll('video');
+        const files = topicRef.current?.querySelectorAll('.file');
         const handleMediaLoad = () => updateHeight();
 
         images?.forEach(img => img.addEventListener('load', handleMediaLoad));
         videos?.forEach(video => video.addEventListener('loadedmetadata', handleMediaLoad));
+        files?.forEach(video => video.addEventListener('loadedmetadata', handleMediaLoad));
 
         window.addEventListener('resize', updateHeight);
 
         return () => {
             images?.forEach(img => img.removeEventListener('load', handleMediaLoad));
             videos?.forEach(video => video.removeEventListener('loadedmetadata', handleMediaLoad));
+            files?.forEach(file => file.removeEventListener('loadedmetadata', handleMediaLoad));
             window.removeEventListener('resize', updateHeight);
         };
     }, [topic, isEditing, formImageUrl, formVideoUrl, formTableData, formContent, formTitle, updateHeight]);
@@ -312,7 +326,61 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                             value={formTableData}
                             onChange={setFormTableData}
                         />
-                    ) : null}
+                    ) : topic.type === 'file' ? (
+                        <div className="w-full flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg mb-4 relative bg-white">
+                            <label
+                                htmlFor={`file-upload-${topic.id}`}
+                                className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                {formFileUrl ? (
+                                    <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 flex flex-col items-center justify-center bg-gray-100 rounded-lg">
+                                        <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2"/>
+                                        <span className="text-center text-gray-700">File Selected</span>
+                                    </div>
+                                ) : (
+                                    <div className='py-4 flex flex-col items-center'>
+                                        <span className="text-[#6B7280] font-semibold mb-2">File Upload</span>
+                                        <div className="px-4 py-2 bg-white border border-gray-300 rounded-md text-black font-medium hover:bg-[#f3f0fa] transition">
+                                            Upload File
+                                        </div>
+                                    </div>
+                                )}
+                                <input
+                                    id={`file-upload-${topic.id}`}
+                                    type="file"
+                                    accept="*/*"
+                                    className="hidden"
+                                    onChange={e => {
+                                        console.log('File input onChange triggered');
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const MAX_FILE_SIZE = 500 * 1024 * 1024; // 5MB
+                                            if (file.size > MAX_FILE_SIZE) {
+                                                console.warn(`File is too large! Maximum allowed size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+                                                alert(`File is too large! Maximum allowed size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+                                                e.target.value = '';
+                                                setFormFileUrl('');
+                                                return;
+                                            }
+                                            console.log('File selected:', file.name, file.type, file.size);
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                console.log('FileReader result (first 100 chars):', (reader.result as string).substring(0, 100));
+                                                setFormFileUrl(reader.result as string);
+                                                console.log('formFileUrl set. New value starts with:', (reader.result as string).substring(0, 50));
+                                            };
+                                            reader.readAsDataURL(file);
+                                        } else {
+                                            console.log('No file selected.');
+                                        }
+                                    }}
+                                    onClick={e => e.stopPropagation()}
+                                />
+                            </label>
+                        </div>
+                    )
+                    : null}
                     <div className="flex gap-2 justify-end">
                         <button
                             className="px-3 py-1 rounded-md bg-white hover:bg-[#f8f8f8] border-[1px] border-[#9b87f5] text-[14px] text-black cursor-pointer"
@@ -441,7 +509,22 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                 </div>
                             </div>
                         </div>
-                    ) : null}
+                    ) : topic.type === 'file' ? (
+                        <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)] transition-all duration-300'>
+                            {topic.fileUrl ? (
+                                <a href={topic.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                    <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 flex flex-col items-center justify-center bg-gray-100 rounded-sm">
+                                        <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2 w-[20px] h-[20px] md:w-[30px] md:h-[30px] lg:w-[48px] lg:h-[48px] transition-all duration-300"/>
+                                        <span className="text-center text-gray-700">Download File</span>
+                                    </div>
+                                </a>
+                            ) : (
+                                <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 transition-all duration-300 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                    No File
+                                </div>
+                            )}
+                        </div>
+                    ): null}
                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
                         <div {...attributes} {...listeners} className="cursor-grab">
                             <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
@@ -533,6 +616,7 @@ const Content = ({
     const [formContent, setFormContent] = useState('');
     const [formImageUrl, setFormImageUrl] = useState('');
     const [formVideoUrl, setFormVideoUrl] = useState('');
+    const [formFileUrl, setFormFileUrl] = useState('');
     const [formTableData, setFormTableData] = useState([['Header 1', 'Header 2']]);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
@@ -546,6 +630,7 @@ const Content = ({
             setFormContent(topicToEdit.content || '');
             setFormImageUrl(topicToEdit.imageUrl || '');
             setFormVideoUrl(topicToEdit.videoUrl || '');
+            setFormFileUrl(topicToEdit.fileUrl || '');
             setFormTableData(topicToEdit.tableData || [['Header 1', 'Header 2']]);
         } else {
             // Clear form if no topic is being edited
@@ -553,6 +638,7 @@ const Content = ({
             setFormContent('');
             setFormImageUrl('');
             setFormVideoUrl('');
+            setFormFileUrl('');
             setFormTableData([['Header 1', 'Header 2']]);
         }
     }, [editingTopicId, topics]);
@@ -652,6 +738,7 @@ const Content = ({
             content: formContent,
             imageUrl: formImageUrl,
             videoUrl: formVideoUrl,
+            fileUrl: formFileUrl,
             tableData: formTableData
         };
         const updatedModule = {
@@ -717,6 +804,8 @@ const Content = ({
                                         setFormImageUrl={setFormImageUrl}
                                         formVideoUrl={formVideoUrl}
                                         setFormVideoUrl={setFormVideoUrl}
+                                        formFileUrl={formFileUrl}
+                                        setFormFileUrl={setFormFileUrl}
                                         formTableData={formTableData}
                                         setFormTableData={setFormTableData}
                                         handleSaveTopic={handleSaveTopic}
@@ -838,6 +927,21 @@ const Content = ({
                                                     {draggedTopic.content || ''}
                                                 </div>
                                             </div>
+                                        </div>
+                                    ) : draggedTopic.type === 'file' ? (
+                                        <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)] transition-all duration-300'>
+                                            {draggedTopic.fileUrl ? (
+                                                <a href={draggedTopic.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                                    <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 flex flex-col items-center justify-center bg-gray-100 rounded-sm">
+                                                        <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2"/>
+                                                        <span className="text-center text-gray-700">Download File</span>
+                                                    </div>
+                                                </a>
+                                            ) : (
+                                                <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 transition-all duration-300 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                                    No File
+                                                </div>
+                                            )}
                                         </div>
                                     ) : null}
                                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
