@@ -90,6 +90,7 @@ const ModulePage = () => {
             content: '',
             imageUrl: '',
             videoUrl: '',
+            fileUrl:'',
             tableData: topicType.type === 'table' ? [['Header 1', 'Header 2']] : undefined,
             boxColor: topicType.type === 'information' ? ['#223C53', '#89B4DD', '#1d316a','blue'] : undefined
         };
