@@ -1,5 +1,5 @@
 'use client'
-import React,{useState} from 'react'
+import React,{useState, useEffect} from 'react'
 import Image from 'next/image'
 import { useModuleEditStore } from '@/app/store/moduleEditStore';
 import {
@@ -28,6 +28,9 @@ const SortableItem = ({ mod, onRemove, courseId, updateModuleTitle }: { mod: Mod
   const [inputValue, setInputValue] = useState(mod.title);
   const [isHovered, setIsHovered] = useState(false);
 
+  useEffect(() => {
+    setInputValue(mod.title);
+  }, [mod.title]);
 
   const handleModuleClick = (id: string) => {
     if (!isEditing) {
