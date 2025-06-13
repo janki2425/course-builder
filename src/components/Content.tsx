@@ -2,7 +2,7 @@ import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/app/store/Store';
-import { Topic } from '@/utils/types';
+import { Topic, Quiz, QuizQuestion, QuizOption } from '@/utils/types';
 import { Module } from '@/app/store/Store';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
 import Vimeo from '@u-wave/react-vimeo';
@@ -30,42 +30,49 @@ export const topicTypes = [
         id: 1,
         name: 'Text Topic',
         type: 'text',
-        icon: '/course/modules/text.svg',
+        // icon: '/course/modules/text.svg',
         selected: false
     },
     {
         id: 2,
         name: 'Image Topic',
         type: 'image',
-        icon: '/course/modules/image.svg',
+        // icon: '/course/modules/image.svg',
         selected: false
     },
     {
         id: 3,
         name: 'Video Topic',
         type: 'video',
-        icon: '/course/modules/video.svg',
+        // icon: '/course/modules/video.svg',
         selected: false
     },
     {
         id: 4,
         name: 'Table Topic',
         type: 'table',
-        icon: '/course/modules/table.svg',
+        // icon: '/course/modules/table.svg',
         selected: false
     },
     {
         id: 5,
         name: 'Information Topic',
         type: 'information',
-        icon: '/course/modules/text.svg',
+        // icon: '/course/modules/text.svg',
         selected: false
     },
     {
         id: 6,
         name:'file Topic',
         type:'file',
-        icon:'/course/modules/file.svg',
+        // icon:'/course/modules/file.svg',
+        selected: false
+    },
+    {
+        id: 7,
+        name:'quiz Topic',
+        type:'quiz',
+        // icon:'/course/module/quiz.svg',
         selected: false
     }
 ]
@@ -94,6 +101,8 @@ interface SortableTopicProps {
     setFormFileUrl: (url: string) => void;
     formTableData: string[][];
     setFormTableData: (data: string[][]) => void;
+    formQuizData: Quiz;
+    setFormQuizData: (data: Quiz | ((prev: Quiz) => Quiz)) => void;
     handleSaveTopic: (topicId: number) => void;
 }
 
@@ -118,6 +127,8 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
     setFormFileUrl,
     formTableData,
     setFormTableData,
+    formQuizData,
+    setFormQuizData,
     handleSaveTopic
 }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: topic.id });
@@ -376,8 +387,254 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                 />
                             </label>
                         </div>
-                    )
-                    : null}
+                    ): topic.type === 'quiz' ? (
+                        <div className="w-full flex flex-col gap-4 mb-8">
+                            <div className="flex flex-col gap-2">
+                                <label className="block text-sm font-medium mb-1">Quiz Title</label>
+                                <input
+                                    type="text"
+                                    value={formTitle}
+                                    onChange={e => setFormTitle(e.target.value)}
+                                    className="w-full mb-2 border text-[#212223] rounded px-2 py-1"
+                                    onClick={e => e.stopPropagation()}
+                                    onKeyDown={e => e.stopPropagation()}
+                                />
+                                <label className="block text-sm font-medium mb-1">Quiz Description</label>
+                                <textarea
+                                    placeholder='Enter quiz description...'
+                                    value={formContent}
+                                    onChange={e => setFormContent(e.target.value)}
+                                    className="w-full h-[100px] text-[#212223] mb-2 border rounded px-2 py-1"
+                                    rows={3}
+                                    onClick={e => e.stopPropagation()}
+                                    onKeyDown={e => e.stopPropagation()}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-medium">Questions</h3>
+                                    <button
+                                        className="px-3 py-1 rounded-md bg-[#9b87f5] hover:bg-[#8f7ce2] text-white text-[14px] font-[500]"
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            const newQuestion = {
+                                                id: crypto.randomUUID(),
+                                                question: '',
+                                                type: 'single' as const,
+                                                options: []
+                                            };
+                                            setFormQuizData((prev: Quiz) => ({
+                                                ...prev,
+                                                questions: [...(prev?.questions || []), newQuestion]
+                                            }));
+                                        }}
+                                    >
+                                        Add Question
+                                    </button>
+                                </div>
+
+                                {formQuizData?.questions?.map((question: QuizQuestion, qIndex: number) => (
+                                    <div key={question.id} className="flex flex-col gap-8 border border-gray-300 rounded-lg p-4">
+                                        <div className="flex flex-col justify-between items-start gap-6">
+                                            <div className='w-full flex flex-col gap-2'>
+                                                <h5 className='text-[18px] font-[500]'>Question Text</h5>
+                                                <div className="w-full flex items-center">
+                                                    <textarea
+                                                        rows={2}
+                                                        value={question.question}
+                                                        onChange={e => {
+                                                            const newQuestions = [...(formQuizData?.questions || [])];
+                                                            newQuestions[qIndex] = {
+                                                                ...question,
+                                                                question: e.target.value
+                                                            };
+                                                            setFormQuizData((prev: Quiz) => ({
+                                                                ...prev,
+                                                                questions: newQuestions
+                                                            }));
+                                                        }}
+                                                        placeholder="Enter question"
+                                                        className="w-full border rounded px-2 py-2"
+                                                        onClick={e => e.stopPropagation()}
+                                                    />
+                                                    <button
+                                                        className="text-red-500 ml-2"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            const newQuestions = formQuizData?.questions?.filter((_: QuizQuestion, i: number) => i !== qIndex);
+                                                            setFormQuizData((prev: Quiz) => ({
+                                                                ...prev,
+                                                                questions: newQuestions
+                                                            }));
+                                                        }}
+                                                    >
+                                                        <Image src={'/course/modules/topics/cross.svg'} width={16} height={16} alt='delete'/>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className='w-full flex flex-col gap-2'>
+                                                <h5 className='text-[18px] font-[500]'>Question Type</h5>
+                                                <select
+                                                id='question-type'
+                                                    value={question.type}
+                                                    onChange={e => {
+                                                        const newQuestions = [...(formQuizData?.questions || [])];
+                                                        newQuestions[qIndex] = {
+                                                            ...question,
+                                                            type: e.target.value as 'single' | 'multiple'
+                                                        };
+                                                        setFormQuizData((prev: Quiz) => ({
+                                                            ...prev,
+                                                            questions: newQuestions
+                                                        }));
+                                                    }}
+                                                    className="border rounded px-3 py-2"
+                                                    onClick={e => e.stopPropagation()}
+                                                >
+                                                    <option value="single">Single Choice</option>
+                                                    <option value="multiple">Multiple Choice</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-4">
+                                            <h3 className='text-[18px] font-[500]'>Answer Options</h3>
+                                            {question.options.map((option: QuizOption, oIndex: number) => (
+                                                <div key={option.id} className="flex flex-col items-start gap-4 border border-slate-300 p-4 rounded-[15px]">
+                                                    <div className='w-full flex flex-col gap-2'>
+                                                        <h5 className='text-[18px] font-[500]'>Option Text</h5>
+                                                        <div className='w-full flex gap-2'>   
+                                                            <input
+                                                                type='text'
+                                                                value={option.text}
+                                                                onChange={e => {
+                                                                    const newQuestions = [...(formQuizData?.questions || [])];
+                                                                    const newOptions = [...question.options];
+                                                                    newOptions[oIndex] = {
+                                                                        ...option,
+                                                                        text: e.target.value
+                                                                    };
+                                                                    newQuestions[qIndex] = {
+                                                                        ...question,
+                                                                        options: newOptions
+                                                                    };
+                                                                    setFormQuizData((prev: Quiz) => ({
+                                                                        ...prev,
+                                                                        questions: newQuestions
+                                                                    }));
+                                                                }}
+                                                                placeholder="Enter option"
+                                                                className="flex-grow border rounded px-2 py-2"
+                                                                onClick={e => e.stopPropagation()}
+                                                            />
+                                                            <button
+                                                                className="text-red-500"
+                                                                onClick={e => {
+                                                                    e.stopPropagation();
+                                                                    const newQuestions = [...(formQuizData?.questions || [])];
+                                                                    const newOptions = question.options.filter((_: QuizOption, i: number) => i !== oIndex);
+                                                                    newQuestions[qIndex] = {
+                                                                        ...question,
+                                                                        options: newOptions
+                                                                    };
+                                                                    setFormQuizData((prev: Quiz) => ({
+                                                                        ...prev,
+                                                                        questions: newQuestions
+                                                                    }));
+                                                                }}
+                                                            >
+                                                                <Image src={'/course/modules/topics/cross.svg'} width={16} height={16} alt='delete'/>
+                                                            </button>
+                                                        </div>   
+                                                    </div>
+                                                    <div className='flex gap-2 items-center'>
+                                                        <input
+                                                            type='checkbox'
+                                                            id='correct'
+                                                            checked={option.isCorrect}
+                                                            onChange={e => {
+                                                                const newQuestions = [...(formQuizData?.questions || [])];
+                                                                const newOptions = [...question.options];
+                                                                if (question.type === 'single') {
+                                                                    newOptions.forEach(opt => opt.isCorrect = false);
+                                                                }
+                                                                newOptions[oIndex] = {
+                                                                    ...option,
+                                                                    isCorrect: e.target.checked
+                                                                };
+                                                                newQuestions[qIndex] = {
+                                                                    ...question,
+                                                                    options: newOptions
+                                                                };
+                                                                setFormQuizData((prev: Quiz) => ({
+                                                                    ...prev,
+                                                                    questions: newQuestions
+                                                                }));
+                                                            }}
+                                                            className='w-4 h-4'
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
+                                                        <label htmlFor="correct" className='text-[18px] font-[500]'>Correct Answer</label>
+                                                    </div>
+                                                    <div className='w-full flex flex-col gap-1'>
+                                                        <h5 className='text-[18px] font-[500]'>Explanation (Optional)</h5>
+                                                        <textarea
+                                                            rows={4}
+                                                            value={option.explanation || ''}
+                                                            onChange={e => {
+                                                                const newQuestions = [...(formQuizData?.questions || [])];
+                                                                const newOptions = [...question.options];
+                                                                newOptions[oIndex] = {
+                                                                    ...option,
+                                                                    explanation: e.target.value
+                                                                };
+                                                                newQuestions[qIndex] = {
+                                                                    ...question,
+                                                                    options: newOptions
+                                                                };
+                                                                setFormQuizData((prev: Quiz) => ({
+                                                                    ...prev,
+                                                                    questions: newQuestions
+                                                                }));
+                                                            }}
+                                                            placeholder="Explain why this answer is correct or incorrect"
+                                                            className="w-full border rounded px-2 py-1"
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <button
+                                                className="px-3 py-3 flex items-center gap-6 justify-center rounded-md bg-white hover:bg-[#f8f8f8] border"
+                                                onClick={e => {
+                                                    e.stopPropagation();
+                                                    const newQuestions = [...(formQuizData?.questions || [])];
+                                                    const newOptions = [...question.options, {
+                                                        id: crypto.randomUUID(),
+                                                        text: '',
+                                                        isCorrect: false
+                                                    }];
+                                                    newQuestions[qIndex] = {
+                                                        ...question,
+                                                        options: newOptions
+                                                    };
+                                                    setFormQuizData((prev: Quiz) => ({
+                                                        ...prev,
+                                                        questions: newQuestions
+                                                    }));
+                                                }}
+                                            >
+                                                <Image src={'/course/modules/add.svg'} width={16} height={16} alt='add'/>
+                                                <span className='text-[18px] text-gray-700'>Add Option</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ): null}
                     <div className="flex gap-2 justify-end">
                         <button
                             className="px-3 py-1 rounded-md bg-white hover:bg-[#f8f8f8] border-[1px] border-[#9b87f5] text-[14px] text-black cursor-pointer"
@@ -511,7 +768,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                             {topic.fileUrl ? (
                                 <a href={topic.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                                     <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 flex flex-col items-center justify-center bg-gray-100 rounded-sm">
-                                        <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2 w-[20px] h-[20px] md:w-[30px] md:h-[30px] lg:w-[48px] lg:h-[48px] transition-all duration-300"/>
+                                        <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2"/>
                                         <span className="text-center text-gray-700">Download File</span>
                                     </div>
                                 </a>
@@ -520,6 +777,67 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                     No File
                                 </div>
                             )}
+                        </div>
+                    ) : topic.type === 'quiz' ? (
+                        <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)] transition-all duration-300'>
+                            <div className="bg-white rounded-lg p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Image
+                                        src="/course/modules/topics/quiz.svg"
+                                        width={24}
+                                        height={24}
+                                        alt='quiz'
+                                        className="w-6 h-6"
+                                    />
+                                    <h3 className="text-lg font-medium text-gray-900">{topic.title}</h3>
+                                </div>
+                                {topic.content && (
+                                    <p className="text-gray-600 text-[14px] font-[500] mb-6 ml-8">{topic.content}</p>
+                                )}
+                                <div className="space-y-6">
+                                    {topic.quizData?.questions.map((question, index) => (
+                                        <div key={question.id} className="border rounded-lg p-4">
+                                            <div className="flex flex-col gap-2 mb-6">
+                                                <div className='flex justify-between'>
+                                                    <span className="text-gray-600 text-[24px] font-[500]">Question</span>
+                                                    <div className='flex gap-2'>
+                                                        <Image src={'/course/dashboard/edit.svg'} width={18} height={18} alt='edit'/>
+                                                        <Image src={'/course/dashboard/delete.svg'} width={18} height={18} alt='delete'/>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[20px] text-gray-600 font-[500]">{question.question}</p>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {question.options.map((option) => (
+                                                    <div key={option.id} className={`flex items-center gap-2 p-2 border-[1px] rounded-[5px] ${option.isCorrect ? 'bg-[#f0fdf4] border-[#9beed5]':'border-[#e9e9e9]'}`}>
+                                                        {question.type === 'single' ? (
+                                                            <input
+                                                                type="radio"
+                                                                checked={option.isCorrect}
+                                                                readOnly
+                                                                className="w-4 h-4 mt-1 text-green-500 border-gray-300 focus:ring-green-500"
+                                                            />
+                                                        ) : (
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={option.isCorrect}
+                                                                readOnly
+                                                                className="w-4 h-4 mt-1 text-green-500 border-gray-300 rounded focus:ring-green-500"
+                                                            />
+                                                        )}
+                                                        <div>
+                                                            <p className="text-[18px] text-gray-700 font-[500]">{option.text}</p>
+                                                            {option.explanation && (
+                                                                <p className="text-sm text-gray-500 mt-1">{option.explanation}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     ): null}
                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
@@ -618,6 +936,12 @@ const Content = ({
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [deletingTopicId, setDeletingTopicId] = useState<number | null>(null);
     const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
+    const [formQuizData, setFormQuizData] = useState<Quiz>({
+        id: crypto.randomUUID(),
+        title: '',
+        content: '',
+        questions: []
+    });
 
     // Initialize form state when editing topic changes
     useEffect(() => {
@@ -629,6 +953,12 @@ const Content = ({
             setFormVideoUrl(topicToEdit.videoUrl || '');
             setFormFileUrl(topicToEdit.fileUrl || '');
             setFormTableData(topicToEdit.tableData || [['Header 1', 'Header 2']]);
+            setFormQuizData(topicToEdit.quizData || {
+                id: crypto.randomUUID(),
+                title: '',
+                content: '',
+                questions: []
+            });
         } else {
             // Clear form if no topic is being edited
             setFormTitle('');
@@ -637,6 +967,12 @@ const Content = ({
             setFormVideoUrl('');
             setFormFileUrl('');
             setFormTableData([['Header 1', 'Header 2']]);
+            setFormQuizData({
+                id: crypto.randomUUID(),
+                title: '',
+                content: '',
+                questions: []
+            });
         }
     }, [editingTopicId, topics]);
 
@@ -736,7 +1072,8 @@ const Content = ({
             imageUrl: formImageUrl,
             videoUrl: formVideoUrl,
             fileUrl: formFileUrl,
-            tableData: formTableData
+            tableData: formTableData,
+            quizData: topicToSave.type === 'quiz' ? formQuizData : undefined
         };
         const updatedModule = {
             ...currentModule,
@@ -805,6 +1142,8 @@ const Content = ({
                                         setFormFileUrl={setFormFileUrl}
                                         formTableData={formTableData}
                                         setFormTableData={setFormTableData}
+                                        formQuizData={formQuizData}
+                                        setFormQuizData={setFormQuizData}
                                         handleSaveTopic={handleSaveTopic}
                                     />
                                 ))}
