@@ -355,7 +355,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                         console.log('File input onChange triggered');
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                            const MAX_FILE_SIZE = 500 * 1024 * 1024; // 5MB
+                                            const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
                                             if (file.size > MAX_FILE_SIZE) {
                                                 console.warn(`File is too large! Maximum allowed size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
                                                 alert(`File is too large! Maximum allowed size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
@@ -363,12 +363,9 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                 setFormFileUrl('');
                                                 return;
                                             }
-                                            console.log('File selected:', file.name, file.type, file.size);
                                             const reader = new FileReader();
                                             reader.onloadend = () => {
-                                                console.log('FileReader result (first 100 chars):', (reader.result as string).substring(0, 100));
                                                 setFormFileUrl(reader.result as string);
-                                                console.log('formFileUrl set. New value starts with:', (reader.result as string).substring(0, 50));
                                             };
                                             reader.readAsDataURL(file);
                                         } else {
