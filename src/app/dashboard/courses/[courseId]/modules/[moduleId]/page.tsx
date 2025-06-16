@@ -121,10 +121,41 @@ const ModulePage = () => {
         router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
     };
 
+    // Add function to handle topic deletion
+    const handleTopicDelete = async (topicId: number) => {
+        if (!moduleId || !courseId || !currentModule) return;
+
+        // Remove topic from module
+        const updatedTopics = currentModule.topics?.filter(t => t.id !== topicId);
+        const updatedModule = {
+            ...currentModule,
+            topics: updatedTopics
+        };
+
+        // Update course with updated module
+        const updatedModules = course?.modules.map((mod: Module) => 
+            mod.id === (moduleId as string) ? updatedModule : mod
+        );
+
+        setCourse(courseId, {
+            modules: updatedModules
+        });
+
+        // Clear topic ID from URL if the deleted topic was selected
+        if (topicId?.toString() === topicId?.toString()) {
+            const currentSearchParams = new URLSearchParams(searchParams.toString());
+            currentSearchParams.delete('topic');
+            router.push(`${pathname}?${currentSearchParams.toString()}`, { scroll: false });
+        }
+
+        // Reset editing states
+        setEditingTopicId(null);
+        setIsTopicEditing(false);
+    };
 
     return (
         <div className='w-full h-auto mx-auto'>
-            <div className='w-full max-w-[1280px] p-4 md:p-6 mx-auto flex flex-col items-center justify-center'>
+            <div className='w-full max-w-[1280px] p-1 md:p-6 mx-auto flex flex-col items-center justify-center'>
                <div className='flex flex-col md:flex-row items-start gap-4 md:gap-0 w-full px-6'>
                     <div className={`w-full flex items-start transition-all mb-[36px] md:mb-0 duration-300 ${isEditing ? 'w-auto' : 'w-fit'}`}>
                         {isEditing ? (
@@ -172,6 +203,7 @@ const ModulePage = () => {
                             isTopicEditing={isTopicEditing}
                             editingTopicId={editingTopicId}
                             setEditingTopicId={setEditingTopicId}
+                            onTopicDelete={handleTopicDelete}
                         />
                     )}
             
@@ -180,10 +212,10 @@ const ModulePage = () => {
                     onClick={() => setIsAddingTopic(true)}
                     className='w-full flex items-center justify-between text-[12px] md:text-[18px] border-none focus:outline-none text-[#020817] p-2 rounded-lg transition-all duration-300'>
                         <div className='flex items-center justify-center gap-2'>
-                            <Image src="/course/modules/add.svg" alt="add" width={16} height={16} className='opacity-50'/>
+                            <Image src="/course/modules/add.svg" alt="add" width={16} height={16} className='opacity-50 w-3 h-3 md:w-4 md:h-4'/>
                             <span className='text-gray-400 text-[12px] md:text-[14px]'>Add New Topic</span>
                         </div>
-                        <Image src="/course/modules/down-arrow.svg" alt="add" width={16} height={16} className='opacity-50'/>
+                        <Image src="/course/modules/down-arrow.svg" alt="add" width={16} height={16} className='opacity-50 w-3 h-3 md:w-4 md:h-4'/>
                     </button>
                 </div>
                 {isAddingTopic && (
