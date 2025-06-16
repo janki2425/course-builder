@@ -213,7 +213,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         <div 
         ref={setNodeRef} 
         style={style} 
-        className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}>
+        {...attributes} {...listeners} className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}>
             <div ref={topicRef} style={{ minHeight: isDragging ? topicHeight : 'auto' }}>
             {isEditing ? (
                 <div className={`w-full mt-2 bg-white p-4 md:p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
@@ -878,8 +878,8 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
             ) : (
                 <div className='w-full flex flex-row items-center justify-between gap-2 md:gap-4 py-2 rounded-md'>
                     {topic.type === 'text' ? (
-                        <div className='flex-grow rounded-sm'>
-                            <div className='w-full whitespace-pre-wrap text-gray-700 text-[14px] md:text-[18px] font-[500] transition-all duration-300'>
+                        <div className='flex-grow rounded-sm py-2'>
+                            <div className='w-full whitespace-pre-wrap px-2 text-gray-700 text-[14px] md:text-[18px] font-[500] transition-all duration-300'>
                                 {topic.content || ''}
                             </div>
                         </div>
@@ -1402,7 +1402,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                         </div>
                     ): null}
                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
-                        <div {...attributes} {...listeners} className="cursor-grab">
+                        <div className="cursor-grab">
                             <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
                         </div>
                         <Image
@@ -1674,8 +1674,10 @@ const Content = ({
     };
 
     return (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
+          <SortableContext strategy={verticalListSortingStrategy} items={topics.map((topic: Topic) => topic.id)}>
         <div className='w-full h-auto mx-auto'>
-            <div className='w-full max-w-[1280px] p-3 md:p-6 mx-auto flex flex-col items-center justify-center'>
+            <div className='w-full gap-2 max-w-[1280px] p-3 md:p-6 mx-auto flex flex-col items-center justify-center'>
                 {topics.map((topic, index) => (
                     <SortableTopic
                         key={topic.id}
@@ -1712,6 +1714,8 @@ const Content = ({
                 ))}
             </div>
         </div>
+        </SortableContext>
+        </DndContext>
     );
 };
 
