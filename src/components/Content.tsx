@@ -213,7 +213,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         <div 
         ref={setNodeRef} 
         style={style} 
-        {...attributes} {...listeners} className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}>
+        className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}>
             <div ref={topicRef} style={{ minHeight: isDragging ? topicHeight : 'auto' }}>
             {isEditing ? (
                 <div className={`w-full mt-2 bg-white p-4 md:p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
@@ -436,6 +436,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                         title: e.target.value
                                                     }));
                                                 }}
+                                                required
                                                 className="text-[16px] font-medium text-gray-900 border rounded px-3 py-2 w-full"
                                                 onClick={e => e.stopPropagation()}
                                                 placeholder="Enter quiz title"
@@ -784,14 +785,28 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                 <div className="flex justify-end mt-4">
                                                     <button
                                                         className="px-4 py-2 rounded-lg bg-[#9b87f5] hover:bg-[#8f7ce2] text-white text-[14px] font-[500] transition-colors"
-                                                        disabled={!formQuizData.questions[index]?.options?.some(opt => opt.isCorrect)}
                                                         onClick={e => {
                                                             e.stopPropagation();
                                                             const currentQuestion = formQuizData.questions[index];
-                                                            const hasCorrectOption = currentQuestion.options?.some(opt => opt.isCorrect);
+                                                            
+                                                            // Check if question has options
+                                                            if (!currentQuestion?.options || currentQuestion.options.length === 0) {
+                                                                toast.error('Please add at least one option to the question.');
+                                                                return;
+                                                            }
 
+                                                            // Check if any option is marked as correct
+                                                            const hasCorrectOption = currentQuestion.options.some(opt => opt.isCorrect === true);
+                                                            
                                                             if (!hasCorrectOption) {
                                                                 toast.error('Please select at least one correct option for this question.');
+                                                                return;
+                                                            }
+
+                                                            // Check if all options have text
+                                                            const hasEmptyOptions = currentQuestion.options.some(opt => !opt.text.trim());
+                                                            if (hasEmptyOptions) {
+                                                                toast.error('Please fill in all option texts.');
                                                                 return;
                                                             }
 
@@ -1331,14 +1346,28 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                 <div className="flex justify-end mt-4">
                                                     <button
                                                         className="px-4 py-2 rounded-lg bg-[#9b87f5] hover:bg-[#8f7ce2] text-white text-[14px] font-[500] transition-colors"
-                                                        disabled={!formQuizData.questions[index]?.options?.some(opt => opt.isCorrect)}
                                                         onClick={e => {
                                                             e.stopPropagation();
                                                             const currentQuestion = formQuizData.questions[index];
-                                                            const hasCorrectOption = currentQuestion.options?.some(opt => opt.isCorrect);
+                                                            
+                                                            // Check if question has options
+                                                            if (!currentQuestion?.options || currentQuestion.options.length === 0) {
+                                                                toast.error('Please add at least one option to the question.');
+                                                                return;
+                                                            }
 
+                                                            // Check if any option is marked as correct
+                                                            const hasCorrectOption = currentQuestion.options.some(opt => opt.isCorrect === true);
+                                                            
                                                             if (!hasCorrectOption) {
                                                                 toast.error('Please select at least one correct option for this question.');
+                                                                return;
+                                                            }
+
+                                                            // Check if all options have text
+                                                            const hasEmptyOptions = currentQuestion.options.some(opt => !opt.text.trim());
+                                                            if (hasEmptyOptions) {
+                                                                toast.error('Please fill in all option texts.');
                                                                 return;
                                                             }
 
@@ -1402,7 +1431,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                         </div>
                     ): null}
                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
-                        <div className="cursor-grab">
+                        <div className="cursor-grab" {...attributes} {...listeners}>
                             <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
                         </div>
                         <Image
@@ -1622,6 +1651,13 @@ const Content = ({
         if (!moduleId || !courseId || !currentModule) return;
         const topicToSave = topics.find((t: Topic) => t.id === topicId);
         if (!topicToSave) return;
+
+        // Add validation for quiz title
+        if (topicToSave.type === 'quiz' && !formQuizData.title.trim()) {
+            toast.error('Quiz title is required');
+            return;
+        }
+
         const updatedTopic = {
             ...topicToSave,
             title: topicToSave.type === 'quiz' ? formQuizData.title : formTitle,
