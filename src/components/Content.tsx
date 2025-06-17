@@ -1,4 +1,4 @@
-import React, { useRef , useState, useEffect, useCallback, useMemo, useLayoutEffect } from 'react'
+import React, { useRef , useState, useEffect, useMemo, } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/app/store/Store';
@@ -141,12 +141,9 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
 }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: topic.id });
 
-    const topicRef = useRef<HTMLDivElement>(null);
-    const [topicHeight, setTopicHeight] = useState<string>('auto');
+    const contentRef = useRef<HTMLDivElement>(null);
 
-    // Effect to capture height when dragging starts and reset when it ends
-    
-        // Depend only on isDragging state
+    console.log(`SortableTopic rendering boxColor for topic ${topic.id}:`, topic.boxColor);
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -167,36 +164,13 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         { id: 4, color: 'red' },
     ];
 
-    // form state when editing starts for quiz
-    useEffect(() => {
-        if (topic.type === 'quiz') {
-            setFormQuizData(prevQuizData => {
-                const loadedQuizData = topic.quizData || {
-                    id: crypto.randomUUID(),
-                    title: topic.title || '',
-                    content: topic.content || '',
-                    questions: []
-                };
-                const questionsWithUncheckedOptions = (loadedQuizData.questions || []).map(q => ({
-                    ...q,
-                    options: (q.options || []).map(o => ({ ...o, isCorrect: false }))
-                }));
-
-                return {
-                    ...loadedQuizData,
-                    questions: questionsWithUncheckedOptions
-                };
-            });
-        }
-    }, [topic, isEditing, setFormQuizData, topic.quizData, topic.title, topic.content]);
-
     return (
         <div
             ref={setNodeRef} 
             style={style}
             className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}
         >
-            <div ref={topicRef} style={{ minHeight: isDragging ? topicHeight : 'auto' }}>
+            <div ref={contentRef}>
             {isEditing ? (
                 <div className={`w-full mt-2 bg-white p-4 md:p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
                     {topic.type === 'text' ? (
@@ -622,20 +596,21 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                                                 type="radio"
                                                                                 checked={formQuizData.questions[index]?.options[oIndex]?.isCorrect || false}
                                                                                 onChange={e => {
-                                                                                    const newQuestions = [...(formQuizData?.questions || [])];
-                                                                                    if (newQuestions[index]) {
-                                                                                        (newQuestions[index].options || []).forEach(opt => opt.isCorrect = false); // Clear others for single choice
-                                                                                        if (newQuestions[index].options[oIndex]) {
-                                                                                            newQuestions[index].options[oIndex] = {
-                                                                                                ...newQuestions[index].options[oIndex],
-                                                                                                isCorrect: e.target.checked
-                                                                                            };
-                                                                                            setFormQuizData(prev => ({
-                                                                                                ...prev,
-                                                                                                questions: newQuestions
+                                                                                    setFormQuizData(prev => {
+                                                                                        const newQuestions = [...(prev?.questions || [])];
+                                                                                        if (newQuestions[index]) {
+                                                                                            // Clear others for single choice, ensuring new option objects
+                                                                                            const updatedOptions = (newQuestions[index].options || []).map((opt, idx) => ({
+                                                                                                ...opt,
+                                                                                                isCorrect: idx === oIndex ? e.target.checked : false // Only set current one to checked
                                                                                             }));
+                                                                                            newQuestions[index] = {
+                                                                                                ...newQuestions[index],
+                                                                                                options: updatedOptions
+                                                                                            };
                                                                                         }
-                                                                                    }
+                                                                                        return { ...prev, questions: newQuestions };
+                                                                                    });
                                                                                 }}
                                                                                 className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-500"
                                                                                 onClick={e => e.stopPropagation()}
@@ -645,17 +620,21 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                                                 type="checkbox"
                                                                                 checked={formQuizData.questions[index]?.options[oIndex]?.isCorrect || false}
                                                                                 onChange={e => {
-                                                                                    const newQuestions = [...(formQuizData?.questions || [])];
-                                                                                    if (newQuestions[index] && newQuestions[index].options[oIndex]) {
-                                                                                        newQuestions[index].options[oIndex] = {
-                                                                                            ...newQuestions[index].options[oIndex],
-                                                                                            isCorrect: e.target.checked
-                                                                                        };
-                                                                                        setFormQuizData(prev => ({
-                                                                                            ...prev,
-                                                                                            questions: newQuestions
-                                                                                        }));
-                                                                                    }
+                                                                                    setFormQuizData(prev => {
+                                                                                        const newQuestions = [...(prev?.questions || [])];
+                                                                                        if (newQuestions[index] && newQuestions[index].options[oIndex]) {
+                                                                                            const updatedOptions = [...(newQuestions[index].options || [])];
+                                                                                            updatedOptions[oIndex] = {
+                                                                                                ...updatedOptions[oIndex],
+                                                                                                isCorrect: e.target.checked
+                                                                                            };
+                                                                                            newQuestions[index] = {
+                                                                                                ...newQuestions[index],
+                                                                                                options: updatedOptions
+                                                                                            };
+                                                                                        }
+                                                                                        return { ...prev, questions: newQuestions };
+                                                                                    });
                                                                                 }}
                                                                                 className="w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-500"
                                                                                 onClick={e => e.stopPropagation()}
@@ -1183,20 +1162,21 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                                                 type="radio"
                                                                                 checked={formQuizData.questions[index]?.options[oIndex]?.isCorrect || false}
                                                                                 onChange={e => {
-                                                                                    const newQuestions = [...(formQuizData?.questions || [])];
-                                                                                    if (newQuestions[index]) {
-                                                                                        (newQuestions[index].options || []).forEach(opt => opt.isCorrect = false); // Clear others for single choice
-                                                                                        if (newQuestions[index].options[oIndex]) {
-                                                                                            newQuestions[index].options[oIndex] = {
-                                                                                                ...newQuestions[index].options[oIndex],
-                                                                                                isCorrect: e.target.checked
-                                                                                            };
-                                                                                            setFormQuizData(prev => ({
-                                                                                                ...prev,
-                                                                                                questions: newQuestions
+                                                                                    setFormQuizData(prev => {
+                                                                                        const newQuestions = [...(prev?.questions || [])];
+                                                                                        if (newQuestions[index]) {
+                                                                                            // Clear others for single choice, ensuring new option objects
+                                                                                            const updatedOptions = (newQuestions[index].options || []).map((opt, idx) => ({
+                                                                                                ...opt,
+                                                                                                isCorrect: idx === oIndex ? e.target.checked : false // Only set current one to checked
                                                                                             }));
+                                                                                            newQuestions[index] = {
+                                                                                                ...newQuestions[index],
+                                                                                                options: updatedOptions
+                                                                                            };
                                                                                         }
-                                                                                    }
+                                                                                        return { ...prev, questions: newQuestions };
+                                                                                    });
                                                                                 }}
                                                                                 className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-500"
                                                                                 onClick={e => e.stopPropagation()}
@@ -1206,17 +1186,21 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                                                                 type="checkbox"
                                                                                 checked={formQuizData.questions[index]?.options[oIndex]?.isCorrect || false}
                                                                                 onChange={e => {
-                                                                                    const newQuestions = [...(formQuizData?.questions || [])];
-                                                                                    if (newQuestions[index] && newQuestions[index].options[oIndex]) {
-                                                                                        newQuestions[index].options[oIndex] = {
-                                                                                            ...newQuestions[index].options[oIndex],
-                                                                                            isCorrect: e.target.checked
-                                                                                        };
-                                                                                        setFormQuizData(prev => ({
-                                                                                            ...prev,
-                                                                                            questions: newQuestions
-                                                                                        }));
-                                                                                    }
+                                                                                    setFormQuizData(prev => {
+                                                                                        const newQuestions = [...(prev?.questions || [])];
+                                                                                        if (newQuestions[index] && newQuestions[index].options[oIndex]) {
+                                                                                            const updatedOptions = [...(newQuestions[index].options || [])];
+                                                                                            updatedOptions[oIndex] = {
+                                                                                                ...updatedOptions[oIndex],
+                                                                                                isCorrect: e.target.checked
+                                                                                            };
+                                                                                            newQuestions[index] = {
+                                                                                                ...newQuestions[index],
+                                                                                                options: updatedOptions
+                                                                                            };
+                                                                                        }
+                                                                                        return { ...prev, questions: newQuestions };
+                                                                                    });
                                                                                 }}
                                                                                 className="w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-500"
                                                                                 onClick={e => e.stopPropagation()}
@@ -1528,35 +1512,25 @@ const Content = ({
     useEffect(() => {
         const topicToEdit = topics.find((t: Topic) => t.id === editingTopicId);
         if (topicToEdit) {
-            setFormTitle(topicToEdit.title);
-            setFormContent(topicToEdit.content || '');
             setFormImageUrl(topicToEdit.imageUrl || '');
             setFormVideoUrl(topicToEdit.videoUrl || '');
             setFormFileUrl(topicToEdit.fileUrl || '');
             setFormTableData(topicToEdit.tableData || [['Header 1', 'Header 2']]);
-            if (topicToEdit.type === 'quiz') {
-                setFormQuizData(prevQuizData => {
-                    const loadedQuizData = topicToEdit.quizData || {
-                        id: crypto.randomUUID(),
-                        title: topicToEdit.title || '',
-                        content: topicToEdit.content || '',
-                        questions: []
-                    };
-                    // Ensure all options are initially unchecked when entering edit mode
-                    const questionsWithUncheckedOptions = (loadedQuizData.questions || []).map(q => ({
-                        ...q,
-                        options: (q.options || []).map(o => ({ ...o, isCorrect: false }))
-                    }));
 
-                    return {
-                        ...loadedQuizData,
-                        questions: questionsWithUncheckedOptions
-                    };
-                });
-                // Also ensure formTitle and formContent reflect quizData title/content when a quiz is being edited
-                setFormTitle(topicToEdit.quizData?.title || topicToEdit.title || '');
-                setFormContent(topicToEdit.quizData?.content || topicToEdit.content || '');
+            if (topicToEdit.type === 'quiz') {
+                const loadedQuizData = topicToEdit.quizData || {
+                    id: crypto.randomUUID(),
+                    title: topicToEdit.title || '',
+                    content: topicToEdit.content || '',
+                    questions: []
+                };
+                setFormQuizData({ ...loadedQuizData, questions: loadedQuizData.questions });
+                setFormTitle(loadedQuizData.title || ''); // Provide default empty string
+                setFormContent(loadedQuizData.content || ''); // Provide default empty string
             } else {
+                // For non-quiz topics, use the general topic title/content
+                setFormTitle(topicToEdit.title);
+                setFormContent(topicToEdit.content || '');
                 setFormQuizData({
                     id: crypto.randomUUID(),
                     title: '',
@@ -1581,7 +1555,7 @@ const Content = ({
             setDeleteId(null);
             setDeletingTopicId(null);
         }
-    }, [editingTopicId, topics]);
+    }, [editingTopicId, topics]); // Dependencies remain the same
 
     const sensors = useSensors(useSensor(PointerSensor));
 
@@ -1630,6 +1604,8 @@ const Content = ({
     const handleUpdateTopic = (topicId: number, updates: Partial<Topic>) => {
         if (!moduleId || !courseId || !currentModule) return;
 
+        console.log("handleUpdateTopic received updates:", updates);
+
         const updatedModule = {
             ...currentModule,
             topics: (currentModule.topics || []).map((t: Topic) => t.id === topicId ? { ...t, ...updates } : t) as Topic[] 
@@ -1650,9 +1626,12 @@ const Content = ({
         if (!topicToSave) return;
 
         // Add validation for quiz title
-        if (topicToSave.type === 'quiz' && !formQuizData.title.trim()) {
-            toast.error('Quiz title is required');
-            return;
+        if (topicToSave.type === 'quiz') {
+            // Use formTitle directly for validation, as it reflects the input's current value
+            if (!formTitle.trim()) {
+                toast.error('Quiz title is required');
+                return;
+            }
         }
 
         const updatedTopic = {
