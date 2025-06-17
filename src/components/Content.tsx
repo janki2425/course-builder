@@ -1,8 +1,8 @@
-import React, { useRef , useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useRef , useState, useEffect, useCallback, useMemo, useLayoutEffect } from 'react'
 import Image from 'next/image';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/app/store/Store';
-import { Topic, Quiz, QuizQuestion, QuizOption } from '@/utils/types';
+import { Topic, Quiz } from '@/utils/types';
 import { Module } from '@/app/store/Store';
 import { useModuleEditStore } from '@/app/store/moduleEditStore'; 
 import Vimeo from '@u-wave/react-vimeo';
@@ -13,7 +13,7 @@ import {
     useSensor,
     useSensors,
     DragEndEvent,
-    DragOverlay
+    DragOverlay,
 } from "@dnd-kit/core";
 import {
     arrayMove,
@@ -138,68 +138,26 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
     handleUpdateTopic,
     editingQuestionId,
     setEditingQuestionId,
-    deletingQuestionId,
-    setDeletingQuestionId
 }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: topic.id });
+
     const topicRef = useRef<HTMLDivElement>(null);
     const [topicHeight, setTopicHeight] = useState<string>('auto');
 
-    // Memoized function to update height
-    const updateHeight = useCallback(() => {
-        if (topicRef.current && !isDragging) {
-            const height = topicRef.current.getBoundingClientRect().height;
-            setTopicHeight(`${height}px`);
-        }
-    }, [isDragging]);
-
-    // Calculate height when content changes or renders
-    useEffect(() => {
-        // Listen for image/video load events to update height
-        const images = topicRef.current?.querySelectorAll('img');
-        const videos = topicRef.current?.querySelectorAll('video');
-        const files = topicRef.current?.querySelectorAll('.file');
-        const handleMediaLoad = () => updateHeight();
-
-        images?.forEach(img => img.addEventListener('load', handleMediaLoad));
-        videos?.forEach(video => video.addEventListener('loadedmetadata', handleMediaLoad));
-        files?.forEach(video => video.addEventListener('loadedmetadata', handleMediaLoad));
-
-        window.addEventListener('resize', updateHeight);
-
-        return () => {
-            images?.forEach(img => img.removeEventListener('load', handleMediaLoad));
-            videos?.forEach(video => video.removeEventListener('loadedmetadata', handleMediaLoad));
-            files?.forEach(file => file.removeEventListener('loadedmetadata', handleMediaLoad));
-            window.removeEventListener('resize', updateHeight);
-        };
-    }, [topic, isEditing, formImageUrl, formVideoUrl, formTableData, formContent, formTitle, updateHeight]);
-
-
+    // Effect to capture height when dragging starts and reset when it ends
     
-    // form state when editing starts
-    useEffect(() => {
-        if (topic.type === 'quiz') {
-            setFormQuizData(topic.quizData || {
-                id: crypto.randomUUID(),
-                title: topic.title || '',
-                content: topic.content || '',
-                questions: []
-            });
-        }
-    }, [topic, isEditing]);
+        // Depend only on isDragging state
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.8 : 1,
+        opacity: isDragging ? 0 : 1, // Make the original item transparent when dragging
         boxShadow: isDragging ? '0px 5px 10px rgba(0, 0, 0, 0.1)' : 'none',
         width: '100%',
         flexShrink: 0,
         flexGrow: 0,
-        height: isDragging ? topicHeight : 'auto',
-        minHeight: topicHeight !== 'auto' ? topicHeight : 'auto',
-        overflow: isDragging ? 'hidden' : 'visible',
+        position: 'relative' as const,
+        zIndex: isDragging ? 1 : 'auto',
     };
 
     const boxColorList = [
@@ -209,11 +167,35 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
         { id: 4, color: 'red' },
     ];
 
+    // form state when editing starts for quiz
+    useEffect(() => {
+        if (topic.type === 'quiz') {
+            setFormQuizData(prevQuizData => {
+                const loadedQuizData = topic.quizData || {
+                    id: crypto.randomUUID(),
+                    title: topic.title || '',
+                    content: topic.content || '',
+                    questions: []
+                };
+                const questionsWithUncheckedOptions = (loadedQuizData.questions || []).map(q => ({
+                    ...q,
+                    options: (q.options || []).map(o => ({ ...o, isCorrect: false }))
+                }));
+
+                return {
+                    ...loadedQuizData,
+                    questions: questionsWithUncheckedOptions
+                };
+            });
+        }
+    }, [topic, isEditing, setFormQuizData, topic.quizData, topic.title, topic.content]);
+
     return (
-        <div 
-        ref={setNodeRef} 
-        style={style} 
-        className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}>
+        <div
+            ref={setNodeRef} 
+            style={style}
+            className={`relative w-full ${isDragging ? 'dragging-topic' : ''}`}
+        >
             <div ref={topicRef} style={{ minHeight: isDragging ? topicHeight : 'auto' }}>
             {isEditing ? (
                 <div className={`w-full mt-2 bg-white p-4 md:p-8 rounded-lg shadow border-[1px] border-[#9c53db] text-[14px] font-[400] text-[#313131]`}>
@@ -1429,7 +1411,7 @@ const SortableTopic: React.FC<SortableTopicProps> = ({
                                 </div>
                             </div>
                         </div>
-                    ): null}
+                    ) : null}
                     <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2 transition-all duration-300'>
                         <div className="cursor-grab" {...attributes} {...listeners}>
                             <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
@@ -1504,7 +1486,6 @@ interface ContentProps {
 
 const Content = ({ 
     moduleId,
-    topicId,
     isTopicEditing,
     editingTopicId,
     setEditingTopicId,
@@ -1540,6 +1521,8 @@ const Content = ({
         questions: []
     });
     const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+    const [activeId, setActiveId] = useState<number | null>(null);
+    const activeTopic = topics.find((t: Topic) => t.id === activeId);
 
     // Initialize form state when editing topic changes
     useEffect(() => {
@@ -1552,11 +1535,23 @@ const Content = ({
             setFormFileUrl(topicToEdit.fileUrl || '');
             setFormTableData(topicToEdit.tableData || [['Header 1', 'Header 2']]);
             if (topicToEdit.type === 'quiz') {
-                setFormQuizData(topicToEdit.quizData || {
-                    id: crypto.randomUUID(),
-                    title: topicToEdit.title || '',
-                    content: topicToEdit.content || '',
-                    questions: []
+                setFormQuizData(prevQuizData => {
+                    const loadedQuizData = topicToEdit.quizData || {
+                        id: crypto.randomUUID(),
+                        title: topicToEdit.title || '',
+                        content: topicToEdit.content || '',
+                        questions: []
+                    };
+                    // Ensure all options are initially unchecked when entering edit mode
+                    const questionsWithUncheckedOptions = (loadedQuizData.questions || []).map(q => ({
+                        ...q,
+                        options: (q.options || []).map(o => ({ ...o, isCorrect: false }))
+                    }));
+
+                    return {
+                        ...loadedQuizData,
+                        questions: questionsWithUncheckedOptions
+                    };
                 });
                 // Also ensure formTitle and formContent reflect quizData title/content when a quiz is being edited
                 setFormTitle(topicToEdit.quizData?.title || topicToEdit.title || '');
@@ -1592,6 +1587,7 @@ const Content = ({
 
     const handleDragStart = (event: DragEndEvent) => {
         const { active } = event;
+        setActiveId(Number(active.id));
         const topic = topics.find((t: Topic) => t.id === active.id);
         if (topic) {
             setDraggedTopic(topic);
@@ -1600,6 +1596,7 @@ const Content = ({
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
+        setActiveId(null);
 
         if (active.id !== over?.id && currentModule) {
             const oldIndex = topics.findIndex((t: Topic) => t.id === active.id);
@@ -1710,47 +1707,203 @@ const Content = ({
     };
 
     return (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-          <SortableContext strategy={verticalListSortingStrategy} items={topics.map((topic: Topic) => topic.id)}>
-        <div className='w-full h-auto mx-auto'>
-            <div className='w-full gap-2 max-w-[1280px] p-3 md:p-6 mx-auto flex flex-col items-center justify-center'>
-                {topics.map((topic, index) => (
-                    <SortableTopic
-                        key={topic.id}
-                        topic={topic}
-                        isEditing={isTopicEditing && editingTopicId === topic.id}
-                        editingTopicId={editingTopicId}
-                        setEditingTopicId={handleEditClick}
-                        handleDeleteTopic={handleDeleteTopic}
-                        deleteId={deleteId}
-                        setDeleteId={setDeleteId}
-                        deletingTopicId={deletingTopicId}
-                        handleBoxColor={handleBoxColor}
-                        formTitle={formTitle}
-                        setFormTitle={setFormTitle}
-                        formContent={formContent}
-                        setFormContent={setFormContent}
-                        formImageUrl={formImageUrl}
-                        setFormImageUrl={setFormImageUrl}
-                        formVideoUrl={formVideoUrl}
-                        setFormVideoUrl={setFormVideoUrl}
-                        formFileUrl={formFileUrl}
-                        setFormFileUrl={setFormFileUrl}
-                        formTableData={formTableData}
-                        setFormTableData={setFormTableData}
-                        formQuizData={formQuizData}
-                        setFormQuizData={setFormQuizData}
-                        handleSaveTopic={handleSaveTopic}
-                        handleUpdateTopic={handleUpdateTopic}
-                        editingQuestionId={editingQuestionId}
-                        setEditingQuestionId={setEditingQuestionId}
-                        deletingQuestionId={deletingQuestionId}
-                        setDeletingQuestionId={setDeletingQuestionId}
-                    />
-                ))}
-            </div>
-        </div>
-        </SortableContext>
+        <DndContext 
+            sensors={sensors} 
+            collisionDetection={closestCenter} 
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd} 
+            modifiers={[restrictToVerticalAxis]}
+        >
+            <SortableContext strategy={verticalListSortingStrategy} items={topics.map((topic: Topic) => topic.id)}>
+                <div className='w-full h-auto mx-auto'>
+                    <div className='w-full gap-2 max-w-[1280px] p-3 md:p-6 mx-auto flex flex-col items-center justify-center'>
+                        {topics.map((topic, index) => (
+                            <SortableTopic
+                                key={topic.id}
+                                topic={topic}
+                                isEditing={isTopicEditing && editingTopicId === topic.id}
+                                editingTopicId={editingTopicId}
+                                setEditingTopicId={handleEditClick}
+                                handleDeleteTopic={handleDeleteTopic}
+                                deleteId={deleteId}
+                                setDeleteId={setDeleteId}
+                                deletingTopicId={deletingTopicId}
+                                handleBoxColor={handleBoxColor}
+                                formTitle={formTitle}
+                                setFormTitle={setFormTitle}
+                                formContent={formContent}
+                                setFormContent={setFormContent}
+                                formImageUrl={formImageUrl}
+                                setFormImageUrl={setFormImageUrl}
+                                formVideoUrl={formVideoUrl}
+                                setFormVideoUrl={setFormVideoUrl}
+                                formFileUrl={formFileUrl}
+                                setFormFileUrl={setFormFileUrl}
+                                formTableData={formTableData}
+                                setFormTableData={setFormTableData}
+                                formQuizData={formQuizData}
+                                setFormQuizData={setFormQuizData}
+                                handleSaveTopic={handleSaveTopic}
+                                handleUpdateTopic={handleUpdateTopic}
+                                editingQuestionId={editingQuestionId}
+                                setEditingQuestionId={setEditingQuestionId}
+                                deletingQuestionId={deletingQuestionId}
+                                setDeletingQuestionId={setDeletingQuestionId}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </SortableContext>
+            <DragOverlay>
+                {activeId ? (
+                    <div className="w-full max-w-[1280px] p-3 md:p-6 mx-auto">
+                        <div className="w-full flex flex-row items-center justify-between gap-2 md:gap-4 py-2 rounded-md bg-white shadow-lg opacity-80">
+                            {activeTopic?.type === 'text' ? (
+                                <div className='flex-grow rounded-sm py-2'>
+                                    <div className='w-full whitespace-pre-wrap px-2 text-gray-700 text-[14px] md:text-[18px] font-[500]'>
+                                        {activeTopic.content || ''}
+                                    </div>
+                                </div>
+                            ) : activeTopic?.type === 'image' ? (
+                                <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)]'>
+                                    {activeTopic.imageUrl ? (
+                                        <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 relative">
+                                            <Image
+                                                src={activeTopic.imageUrl}
+                                                alt="Preview"
+                                                width={0}
+                                                height={0}
+                                                sizes="100vw"
+                                                className="w-full h-full object-cover rounded-sm"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                            No Image
+                                        </div>
+                                    )}
+                                </div>
+                            ) : activeTopic?.type === 'video' ? (
+                                <div className='flex-grow'>
+                                    {activeTopic.videoUrl ? (
+                                        <div className="w-full aspect-video py-2">
+                                            {activeTopic.videoUrl.startsWith('blob:') ? (
+                                                <video controls className='w-full h-full rounded-sm'>
+                                                    <source src={activeTopic.videoUrl} type="video/mp4" />
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            ) : (
+                                                <Vimeo
+                                                    video={activeTopic.videoUrl || 'video not found'}
+                                                    responsive
+                                                    autoplay={false}
+                                                    className='w-full h-full rounded-sm'
+                                                />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-[150px] md:h-[350px] lg:h-[500px] py-2 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                            No video
+                                        </div>
+                                    )}
+                                </div>
+                            ) : activeTopic?.type === 'table' ? (
+                                <div className='flex-grow overflow-x-auto'>
+                                    <table className="w-full border">
+                                        <thead>
+                                            <tr>
+                                                {activeTopic.tableData?.[0]?.map((cell: string, idx: number) => (
+                                                    <th key={idx} className="px-2 py-1 border border-gray-300 text-center text-[14px] md:text-[18px] font-semibold text-gray-700">
+                                                        {cell}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {activeTopic.tableData?.slice(1)?.filter((row: string[]) => row.some((cell: string) => cell !== ''))?.map((row: string[], rIdx: number) => (
+                                                <tr key={rIdx}>
+                                                    {row.map((cell: string, cIdx: number) => (
+                                                        <td key={cIdx} className="border px-2 py-1 text-[14px] md:text-[18px] text-gray-600">
+                                                            {cell}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : activeTopic?.type === 'information' ? (
+                                <div
+                                    className="w-full rounded-sm"
+                                    style={{
+                                        backgroundColor: activeTopic.boxColor ? activeTopic.boxColor[1] : '#89B4DD',
+                                        border: activeTopic.boxColor ? `1px solid ${activeTopic.boxColor[0]}` : 'none',
+                                    }}
+                                >
+                                    <div className="flex flex-col items-start gap-2 p-4">
+                                        <div className='flex items-start md:items-center gap-2'>
+                                            <Image
+                                                src={`/course/modules/topics/info-${activeTopic.boxColor?.[3] || 'blue'}.svg`}
+                                                width={24}
+                                                height={24}
+                                                alt='info'
+                                                className="w-4 h-4 md:w-6 md:h-6"
+                                            />
+                                            <h3 className='text-[15px] md:text-[18px] font-[500] leading-4' style={{
+                                                color: activeTopic.boxColor ? activeTopic.boxColor[2] : '#1d316a'
+                                            }}>{activeTopic.title}</h3>
+                                        </div>
+                                        <div
+                                            className="w-full whitespace-pre-wrap text-[14px] md:text-[18px] font-[500]"
+                                            style={{
+                                                color: activeTopic.boxColor ? activeTopic.boxColor[2] : '#374151'
+                                            }}
+                                        >
+                                            {activeTopic.content || ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : activeTopic?.type === 'file' ? (
+                                <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)]'>
+                                    {activeTopic.fileUrl ? (
+                                        <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 flex flex-col items-center justify-center bg-gray-100 rounded-sm">
+                                            <Image src="/course/modules/file.svg" alt="File icon" width={48} height={48} className="mb-2"/>
+                                            <span className="text-center text-gray-700">File</span>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-[100px] md:h-[150px] lg:h-[200px] py-2 relative bg-gray-200 rounded-sm flex items-center justify-center text-gray-500">
+                                            No File
+                                        </div>
+                                    )}
+                                </div>
+                            ) : activeTopic?.type === 'quiz' ? (
+                                <div className='w-full max-w-[calc(100%-30px)] md:max-w-[calc(100%-50px)]'>
+                                    <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2 md:mb-4">
+                                            <Image
+                                                src="/course/modules/topics/quiz.svg"
+                                                width={24}
+                                                height={24}
+                                                alt='quiz'
+                                                className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
+                                            />
+                                            <h3 className="text-md md:text-lg font-medium text-gray-900">{activeTopic.title}</h3>
+                                        </div>
+                                        {activeTopic.content && (
+                                            <p className="text-gray-600 text-[14px] font-[500] mb-6">{activeTopic.content}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : null}
+                            <div className='min-w-[30px] md:min-w-[50px] max-w-[50px] flex flex-col items-center justify-center gap-2'>
+                                <div className="cursor-grab">
+                                    <Image src='/sidebar/drag.svg' alt='drag' width={16} height={16} className='w-[14px] h-[14px] md:w-[16px] md:h-[16px] opacity-80'/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
+            </DragOverlay>
         </DndContext>
     );
 };
